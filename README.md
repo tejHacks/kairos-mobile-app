@@ -71,6 +71,8 @@ Kairos isn't just an app; it's a spiritual tool. Version 1 focuses on a zero-bac
   npx expo start --web
   ```
 
+> Note: The splash screen only appears on the first launch. After the user starts the app once, future opens go directly to `home.tsx` and `app/index.tsx` is skipped.
+
 ### Building for Production
 
 Use EAS Build for production builds:

@@ -3,12 +3,13 @@ import {
   Inter_600SemiBold,
   useFonts,
 } from "@expo-google-fonts/inter";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { Cross } from "lucide-react-native";
-import React, { useEffect } from "react";
-import { Dimensions, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Dimensions, Text, TouchableOpacity } from "react-native";
 import Animated, {
   Easing,
   runOnJS,
@@ -23,6 +24,8 @@ SplashScreen.preventAutoHideAsync();
 
 const { width } = Dimensions.get("window");
 
+const STORAGE_KEY = "@kairos:first_open_complete";
+
 // Responsive helper functions
 const isSmallDevice = width < 375;
 const isTablet = width >= 768;
@@ -35,6 +38,7 @@ const scale = (size: number) => {
 
 export default function SplashScreenComponent() {
   const router = useRouter();
+  const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
 
   // Animation values
   const iconScale = useSharedValue(0);
@@ -48,7 +52,22 @@ export default function SplashScreenComponent() {
 
   // Run entrance animation once fonts are loaded
   useEffect(() => {
-    if (!fontsLoaded) return;
+    (async () => {
+      try {
+        const storedValue = await AsyncStorage.getItem(STORAGE_KEY);
+        if (storedValue === "true") {
+          router.replace("/(main)/home");
+          return;
+        }
+      } catch (error) {
+        console.warn("[Kairos] Launch state read failed:", error);
+      }
+      setIsFirstLaunch(true);
+    })();
+  }, [router]);
+
+  useEffect(() => {
+    if (!fontsLoaded || isFirstLaunch === null) return;
 
     SplashScreen.hideAsync();
 
@@ -57,9 +76,8 @@ export default function SplashScreenComponent() {
       duration: 1200,
       easing: Easing.out(Easing.cubic),
     });
-  }, [fontsLoaded, iconScale]);
+  }, [fontsLoaded, isFirstLaunch, iconScale]);
 
-  // Icon animation style
   const iconStyle = useAnimatedStyle(() => ({
     transform: [{ scale: iconScale.value }],
   }));
@@ -70,6 +88,16 @@ export default function SplashScreenComponent() {
   }));
 
   // Handle Start button press
+  const finishStart = async () => {
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, "true");
+    } catch (error) {
+      console.warn("[Kairos] Launch state save failed:", error);
+    }
+
+    router.replace("/(main)/home");
+  };
+
   const handleStart = () => {
     // Fade screen out
     screenOpacity.value = withTiming(
@@ -77,14 +105,14 @@ export default function SplashScreenComponent() {
       { duration: 500, easing: Easing.inOut(Easing.ease) },
       () => {
         // Navigate only after animation finishes
-        runOnJS(router.replace)("/(main)/home");
+        runOnJS(finishStart)();
       },
     );
   };
 
-  // While fonts load, show purple background
-  if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: "#1a0f2e" }} />;
+  // While fonts load or launch state resolves, keep the native splash screen visible
+  if (!fontsLoaded || isFirstLaunch === null) {
+    return null;
   }
 
   return (

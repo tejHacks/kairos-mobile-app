@@ -22,7 +22,7 @@ export default function Navbar() {
 
   const tabs = [
     { label: "Kairos", icon: Clock, route: "/(main)/kairos" },
-    { label: "Meditations", icon: BookOpen, route: "/(main)/meditations" },
+    { label: "Meditate", icon: BookOpen, route: "/(main)/meditations" },
     { label: "Altar", icon: Flame, route: "/(main)/home", isMain: true },
     { label: "Scribe", icon: PenTool, route: "/(main)/scribe" },
     { label: "Fasting", icon: Droplets, route: "/(main)/fasting" },

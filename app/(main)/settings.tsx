@@ -168,6 +168,12 @@ export default function SettingsScreen() {
           >
             <Text style={styles.aboutButtonText}>Open About</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/(main)/and-yeah")}
+            style={[styles.aboutButton, { marginTop: 12, backgroundColor: "#4d35a8" }]}
+          >
+            <Text style={styles.aboutButtonText}>Open And Yeah</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.footerCard}>
