@@ -1,5 +1,11 @@
 import { usePathname, useRouter } from "expo-router";
-import { BookOpen, Clock, Droplets, Flame, PenTool } from "lucide-react-native";
+import {
+  BookOpen,
+  Clock,
+  Droplets,
+  Flame,
+  PenTool
+} from "lucide-react-native";
 import React from "react";
 import { Dimensions, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,6 +32,8 @@ export default function Navbar() {
     { label: "Altar", icon: Flame, route: "/(main)/home", isMain: true },
     { label: "Scribe", icon: PenTool, route: "/(main)/scribe" },
     { label: "Fasting", icon: Droplets, route: "/(main)/fasting" },
+    // { label: "About", icon: BookOpen, route: "/(main)/about" },
+    // { label: "Settings", icon: Settings2, route: "/(main)/settings" },
   ];
 
   return (

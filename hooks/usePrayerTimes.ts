@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useCallback, useEffect, useState } from "react";
+import { Platform } from "react-native";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -15,6 +16,23 @@ export interface PrayerHour {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY = "@kairos/prayer_times";
+const SETTINGS_KEY = "@kairos/settings";
+
+export type NotificationSound =
+  | "default"
+  | "bells"
+  | "soft_chime"
+  | "harp"
+  | "custom";
+
+export interface NotificationPreferences {
+  soundEnabled: boolean;
+  sound: NotificationSound;
+  customSoundUri?: string;
+  customSoundName?: string;
+}
+
+const DEFAULT_NOTIFICATION_SOUND: NotificationSound = "default";
 
 // 3 presets shown on first install — user can edit/delete/add freely
 export const DEFAULT_HOURS: PrayerHour[] = [
@@ -59,10 +77,56 @@ async function requestPermission(): Promise<boolean> {
   return status === "granted";
 }
 
+export async function getNotificationPreferences(): Promise<NotificationPreferences> {
+  try {
+    const raw = await AsyncStorage.getItem(SETTINGS_KEY);
+    if (!raw) {
+      return {
+        soundEnabled: true,
+        sound: DEFAULT_NOTIFICATION_SOUND,
+      };
+    }
+    const settings = JSON.parse(raw) as {
+      soundEnabled?: boolean;
+      notificationSound?: NotificationSound;
+      customNotificationSoundUri?: string;
+      customNotificationSoundName?: string;
+    };
+    return {
+      soundEnabled: settings.soundEnabled ?? true,
+      sound: settings.notificationSound ?? DEFAULT_NOTIFICATION_SOUND,
+      customSoundUri: settings.customNotificationSoundUri,
+      customSoundName: settings.customNotificationSoundName,
+    };
+  } catch (e) {
+    console.warn("[Kairos] Notification preferences read failed:", e);
+    return {
+      soundEnabled: true,
+      sound: DEFAULT_NOTIFICATION_SOUND,
+    };
+  }
+}
+
 async function rescheduleNotifications(hours: PrayerHour[]): Promise<void> {
   try {
     const granted = await requestPermission();
     if (!granted) return;
+
+    const { soundEnabled, sound } = await getNotificationPreferences();
+    const isCustom = sound === "custom";
+    const notificationSound = soundEnabled
+      ? isCustom
+        ? "default"
+        : sound
+      : false;
+
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("prayer", {
+        name: "Prayer Reminders",
+        importance: Notifications.AndroidImportance.HIGH,
+        sound: notificationSound === false ? "default" : notificationSound,
+      });
+    }
 
     const all = await Notifications.getAllScheduledNotificationsAsync();
     const kairosIds = all
@@ -78,7 +142,7 @@ async function rescheduleNotifications(hours: PrayerHour[]): Promise<void> {
         content: {
           title: `🕊️ ${hour.name}`,
           body: hour.subtitle,
-          sound: true,
+          sound: notificationSound,
           data: { kairos: true, prayerHourId: hour.id },
         },
         trigger: {
@@ -90,6 +154,16 @@ async function rescheduleNotifications(hours: PrayerHour[]): Promise<void> {
     }
   } catch (e) {
     console.error("[Kairos] Notification scheduling failed:", e);
+  }
+}
+
+export async function rescheduleSavedPrayerNotifications(): Promise<void> {
+  try {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const hours = raw ? (JSON.parse(raw) as PrayerHour[]) : DEFAULT_HOURS;
+    await rescheduleNotifications(hours);
+  } catch (e) {
+    console.error("[Kairos] Saved prayer notification reschedule failed:", e);
   }
 }
 
@@ -116,6 +190,11 @@ export function usePrayerTimes() {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    if (loading) return;
+    void rescheduleNotifications(hours);
+  }, [loading, hours]);
 
   const persist = useCallback(async (updated: PrayerHour[]) => {
     try {

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Navbar from "../../components/Navbar";
+import TopBar from "../../components/TopBar";
 
 // Import external constants
 import { dailyPsalms } from "../../constants/daily-psalms";
@@ -53,7 +54,7 @@ export default function MeditationScreen() {
   const todaysTheme = themes[todaysThemeKey as keyof typeof themes];
   const todaysThemeVerse =
     todaysTheme.verses[
-      Math.floor(dayOfYear / themeKeys.length) % todaysTheme.verses.length
+    Math.floor(dayOfYear / themeKeys.length) % todaysTheme.verses.length
     ];
 
   return (
@@ -62,14 +63,11 @@ export default function MeditationScreen() {
       style={styles.container}
     >
       <SafeAreaView style={{ flex: 1 }}>
+        <TopBar title="Meditation" subtitle="Feed your soul with God's word" />
         <ScrollView
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.header}>Meditation</Text>
-          <Text style={styles.subtitle}>
-            Feed your soul with God&apos;s Word
-          </Text>
 
           {/* VERSE OF THE DAY */}
           <View style={styles.dailyCard}>

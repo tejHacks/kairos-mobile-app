@@ -26,6 +26,7 @@
     ],
     "android": {
       "package": "com.olateju.kairos",
+      "permissions": ["android.permission.READ_EXTERNAL_STORAGE"],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#1a0f2e"

@@ -28,6 +28,7 @@ import { COLORS } from "../../constants/appConstants";
 import { usePrayerState, ViewState } from "../../hooks/usePrayerState";
 import { usePrayerTimes } from "../../hooks/usePrayerTimes";
 import { scaleFont, scaleSize, verticalScale } from "../../hooks/useResponsive";
+import TopBar from "../../components/TopBar";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -307,6 +308,9 @@ export default function Home() {
       colors={[COLORS.background, COLORS.secondary, COLORS.background]}
       style={{ flex: 1 }}
     >
+      {/* // Remove appTitle Text, add above ScrollView: */}
+      <TopBar title="Altar" subtitle="Come before the throne" />
+
       <ScrollView
         contentContainerStyle={{
           paddingTop: insets.top + scaleSize(16),
@@ -320,7 +324,6 @@ export default function Home() {
         {/* ── ALTAR VIEW ── */}
         {view === "altar" && (
           <>
-            <Text style={styles.appTitle}>KAIROS</Text>
 
             {/* Live clock */}
             <Text style={styles.time}>
