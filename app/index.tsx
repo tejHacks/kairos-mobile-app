@@ -1,32 +1,38 @@
 import {
   Inter_400Regular,
   Inter_600SemiBold,
+  Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { Cross } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
-import { Dimensions, Text, TouchableOpacity } from "react-native";
-import Animated, {
-  Easing,
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import {
+  BookOpen,
+  Clock,
+  Cross,
+  Droplets,
+  Flame,
+  PenTool,
+} from "lucide-react-native";
+import React, { useRef, useState } from "react";
+import {
+  Animated,
+  Dimensions,
+  FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-// Prevent splash from hiding until fonts are ready
 SplashScreen.preventAutoHideAsync();
 
-const { width } = Dimensions.get("window");
-
-const STORAGE_KEY = "@kairos:first_open_complete";
-
-// Responsive helper functions
+const { width, height } = Dimensions.get("window");
 const isSmallDevice = width < 375;
 const isTablet = width >= 768;
 
@@ -36,170 +42,355 @@ const scale = (size: number) => {
   return size;
 };
 
-export default function SplashScreenComponent() {
+const STORAGE_KEY = "@kairos:first_open_complete";
+const GOLD = "#D4AF37";
+
+type Slide = {
+  key: string;
+  isSplash?: boolean;
+  eyebrow?: string;
+  title?: string;
+  body?: string;
+  Icon?: any;
+  gradient: [string, string, string];
+};
+
+const SLIDES: Slide[] = [
+  {
+    key: "splash",
+    isSplash: true,
+    gradient: ["#0F0818", "#1A0F2E", "#4C1D95"],
+  },
+  {
+    key: "pray",
+    eyebrow: "PRAY",
+    title: "Never miss your\nappointed hour",
+    body: "Set sacred reminders through your day — morning, noon, evening — so prayer becomes rhythm, not afterthought.",
+    Icon: Clock,
+    gradient: ["#150C24", "#2D1B4E", "#5B21B6"],
+  },
+  {
+    key: "meditate",
+    eyebrow: "MEDITATE",
+    title: "Let the Word\nsink deep",
+    body: "Guided scripture meditations to slow you down and root your mind in truth, one verse at a time.",
+    Icon: BookOpen,
+    gradient: ["#120A1E", "#241442", "#6D28D9"],
+  },
+  {
+    key: "fast",
+    eyebrow: "FAST",
+    title: "Deny the flesh.\nFeed the spirit.",
+    body: "Plan, track, and stay accountable through seasons of fasting — with scripture and strength for every hour.",
+    Icon: Droplets,
+    gradient: ["#0F0F20", "#1E1B3A", "#4338CA"],
+  },
+  {
+    key: "scribe",
+    eyebrow: "SCRIBE",
+    title: "Write it down.\nWatch Him answer.",
+    body: "Journal your prayers and testimonies. Come back later and see just how faithful He's been.",
+    Icon: PenTool,
+    gradient: ["#160B22", "#2A1548", "#7E22CE"],
+  },
+  {
+    key: "altar",
+    eyebrow: "ALTAR",
+    title: "Build your\naltar here.",
+    body: "Kairos — the appointed time is now. Come before the throne daily, and watch your life change.",
+    Icon: Flame,
+    gradient: ["#1A0F2E", "#3B1F6B", "#D4AF37"],
+  },
+];
+
+export default function IndexScreen() {
   const router = useRouter();
-  const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
+  const listRef = useRef<FlatList<Slide>>(null);
+  const [index, setIndex] = useState(0);
+  const [checking, setChecking] = useState(true);
+  const scrollX = useRef(new Animated.Value(0)).current;
 
-  // Animation values
-  const iconScale = useSharedValue(0);
-  const screenOpacity = useSharedValue(1);
-
-  // Load fonts
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_600SemiBold,
+    Inter_700Bold,
   });
 
-  // Run entrance animation once fonts are loaded
-  useEffect(() => {
+  React.useEffect(() => {
     (async () => {
       try {
-        const storedValue = await AsyncStorage.getItem(STORAGE_KEY);
-        if (storedValue === "true") {
+        const stored = await AsyncStorage.getItem(STORAGE_KEY);
+        if (stored === "true") {
           router.replace("/(main)/home");
           return;
         }
       } catch (error) {
         console.warn("[Kairos] Launch state read failed:", error);
       }
-      setIsFirstLaunch(true);
+      setChecking(false);
     })();
   }, [router]);
 
-  useEffect(() => {
-    if (!fontsLoaded || isFirstLaunch === null) return;
+  React.useEffect(() => {
+    if (!checking && fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [checking, fontsLoaded]);
 
-    SplashScreen.hideAsync();
+  if (checking || !fontsLoaded) return null;
 
-    // Icon zooms in smoothly
-    iconScale.value = withTiming(1, {
-      duration: 1200,
-      easing: Easing.out(Easing.cubic),
-    });
-  }, [fontsLoaded, isFirstLaunch, iconScale]);
+  const onScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+    { useNativeDriver: false }
+  );
 
-  const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: iconScale.value }],
-  }));
+  const onMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
+    setIndex(newIndex);
+  };
 
-  // Whole screen fade-out animation
-  const screenStyle = useAnimatedStyle(() => ({
-    opacity: screenOpacity.value,
-  }));
-
-  // Handle Start button press
-  const finishStart = async () => {
+  const finishOnboarding = async () => {
     try {
       await AsyncStorage.setItem(STORAGE_KEY, "true");
     } catch (error) {
       console.warn("[Kairos] Launch state save failed:", error);
     }
-
     router.replace("/(main)/home");
   };
 
-  const handleStart = () => {
-    // Fade screen out
-    screenOpacity.value = withTiming(
-      0,
-      { duration: 500, easing: Easing.inOut(Easing.ease) },
-      () => {
-        // Navigate only after animation finishes
-        runOnJS(finishStart)();
-      },
-    );
+  const goNext = () => {
+    if (index < SLIDES.length - 1) {
+      listRef.current?.scrollToIndex({ index: index + 1 });
+    } else {
+      finishOnboarding();
+    }
   };
 
-  // While fonts load or launch state resolves, keep the native splash screen visible
-  if (!fontsLoaded || isFirstLaunch === null) {
-    return null;
-  }
+  const isLast = index === SLIDES.length - 1;
 
   return (
-    <Animated.View style={[{ flex: 1 }, screenStyle]}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#1a0f2e" }}>
-        <LinearGradient
-          colors={["#1a0f2e", "#2d1b4e", "#1a0f2e"]}
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            padding: scale(20),
-          }}
-        >
-          {/* App Icon */}
-          <Animated.View style={iconStyle}>
-            <Cross size={scale(200)} color="#FFFFFF" strokeWidth={1.5} />
-          </Animated.View>
-
-          {/* App Title */}
-          <Text
-            style={{
-              fontFamily: "Inter_600SemiBold",
-              fontSize: scale(36),
-              color: "#FFFFFF",
-              marginTop: scale(20),
-              textAlign: "center",
-            }}
-          >
-            Kairos
-          </Text>
-
-          {/* Subtitle */}
-          <Text
-            style={{
-              fontFamily: "Inter_400Regular",
-              fontSize: scale(20),
-              color: "#FFFFFF",
-              opacity: 0.85,
-              marginTop: scale(10),
-              marginBottom: scale(30),
-              textAlign: "center",
-            }}
-          >
-            Seek your Father in prayer. He hears you.
-          </Text>
-
-          {/* Scripture */}
-          <Text
-            style={{
-              fontFamily: "Inter_400Regular",
-              fontSize: scale(16),
-              color: "#FFFFFF",
-              textAlign: "center",
-              lineHeight: scale(24),
-              opacity: 0.9,
-            }}
-          >
-            &quot;Men ought always to pray, and not to faint.&quot;{"\n"}– Luke
-            18:1 (KJV)
-          </Text>
-
-          {/* Start Button */}
-          <TouchableOpacity
-            onPress={handleStart}
-            style={{
-              position: "absolute",
-              bottom: scale(60),
-              backgroundColor: "#FFFFFF",
-              paddingVertical: scale(14),
-              paddingHorizontal: scale(110),
-              borderRadius: scale(30),
-            }}
-          >
-            <Text
-              style={{
-                color: "#5B21B6",
-                fontSize: scale(16),
-                fontFamily: "Inter_600SemiBold",
-                letterSpacing: 1,
-              }}
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <FlatList
+        ref={listRef}
+        data={SLIDES}
+        keyExtractor={(item) => item.key}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={onScroll}
+        onMomentumScrollEnd={onMomentumEnd}
+        scrollEventThrottle={16}
+        renderItem={({ item }) =>
+          item.isSplash ? (
+            <LinearGradient
+              colors={item.gradient}
+              start={{ x: 0.1, y: 0 }}
+              end={{ x: 0.9, y: 1 }}
+              style={[styles.slide, styles.splashSlide]}
             >
-              START
-            </Text>
+              <Cross size={scale(72)} color={GOLD} strokeWidth={1.5} />
+              <Text style={styles.greek}>καιρός</Text>
+              <Text style={styles.appName}>Kairos</Text>
+              <View style={styles.divider} />
+              <Text style={styles.meaning}>the appointed time · god's perfect timing</Text>
+              <Text style={styles.scripture}>
+                &quot;To every thing there is a season,{"\n"}
+                and a <Text style={styles.bold}>time</Text> to every purpose{"\n"}
+                under the heaven.&quot;
+              </Text>
+              <Text style={styles.ref}>Ecclesiastes 3:1</Text>
+              <Text style={styles.footer}>Seek Him in His time</Text>
+            </LinearGradient>
+          ) : (
+            <LinearGradient
+              colors={item.gradient}
+              start={{ x: 0.1, y: 0 }}
+              end={{ x: 0.9, y: 1 }}
+              style={styles.slide}
+            >
+              <View style={styles.glowOrb} />
+              <View style={styles.textBlock}>
+                <View style={styles.iconCircle}>
+                  <item.Icon size={34} color={GOLD} strokeWidth={2} />
+                </View>
+                <Text style={styles.eyebrow}>{item.eyebrow}</Text>
+                <Text style={styles.title}>{item.title}</Text>
+                <Text style={styles.body}>{item.body}</Text>
+              </View>
+            </LinearGradient>
+          )
+        }
+      />
+
+      <View style={styles.dotsRow}>
+        {SLIDES.map((_, i) => {
+          const dotWidth = scrollX.interpolate({
+            inputRange: [(i - 1) * width, i * width, (i + 1) * width],
+            outputRange: [8, 24, 8],
+            extrapolate: "clamp",
+          });
+          const dotOpacity = scrollX.interpolate({
+            inputRange: [(i - 1) * width, i * width, (i + 1) * width],
+            outputRange: [0.3, 1, 0.3],
+            extrapolate: "clamp",
+          });
+          return (
+            <Animated.View
+              key={i}
+              style={[styles.dot, { width: dotWidth, opacity: dotOpacity }]}
+            />
+          );
+        })}
+      </View>
+
+      <View style={styles.bottomRow}>
+        {!isLast ? (
+          <TouchableOpacity onPress={finishOnboarding} hitSlop={12}>
+            <Text style={styles.skipText}>Skip</Text>
           </TouchableOpacity>
-        </LinearGradient>
-      </SafeAreaView>
-    </Animated.View>
+        ) : (
+          <View style={{ width: 50 }} />
+        )}
+
+        <TouchableOpacity style={styles.nextButton} onPress={goNext}>
+          <Text style={styles.nextButtonText}>
+            {isLast ? "Begin Praying" : "Next"}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#0F0818" },
+  slide: { width, height, justifyContent: "center", paddingHorizontal: scale(32) },
+  splashSlide: { alignItems: "center", paddingHorizontal: scale(24) },
+  greek: {
+    fontSize: scale(30),
+    color: GOLD,
+    marginTop: scale(16),
+    fontFamily: "Inter_400Regular",
+    letterSpacing: 2,
+  },
+  appName: {
+    fontSize: scale(38),
+    fontFamily: "Inter_700Bold",
+    color: "#F3EAFB",
+    letterSpacing: 6,
+    marginTop: scale(10),
+    marginBottom: scale(14),
+    textTransform: "uppercase",
+  },
+  divider: { width: 60, height: 1, backgroundColor: GOLD, opacity: 0.6, marginBottom: scale(14) },
+  meaning: {
+    fontSize: scale(13),
+    color: "rgba(212,175,55,0.7)",
+    letterSpacing: 1.5,
+    textAlign: "center",
+    marginBottom: scale(28),
+    fontFamily: "Inter_400Regular",
+  },
+  scripture: {
+    fontSize: scale(14),
+    color: "rgba(243,234,251,0.8)",
+    textAlign: "center",
+    lineHeight: scale(22),
+    fontStyle: "italic",
+    marginBottom: scale(6),
+    fontFamily: "Inter_400Regular",
+  },
+  bold: { color: GOLD, fontStyle: "italic", fontFamily: "Inter_600SemiBold" },
+  ref: {
+    fontSize: scale(11),
+    color: "rgba(212,175,55,0.55)",
+    letterSpacing: 2,
+    marginBottom: scale(16),
+    textTransform: "uppercase",
+    fontFamily: "Inter_400Regular",
+  },
+  footer: {
+    fontSize: scale(10),
+    color: GOLD,
+    letterSpacing: 1.5,
+    textTransform: "uppercase",
+    marginTop: scale(8),
+    fontFamily: "Inter_600SemiBold",
+  },
+  glowOrb: {
+    position: "absolute",
+    top: height * 0.14,
+    alignSelf: "center",
+    width: scale(180),
+    height: scale(180),
+    borderRadius: scale(90),
+    backgroundColor: GOLD,
+    opacity: 0.14,
+  },
+  textBlock: { marginTop: scale(40) },
+  iconCircle: {
+    width: scale(64),
+    height: scale(64),
+    borderRadius: scale(32),
+    borderWidth: 1.5,
+    borderColor: GOLD,
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "flex-start",
+    marginBottom: scale(22),
+  },
+  eyebrow: {
+    fontSize: scale(13),
+    fontFamily: "Inter_700Bold",
+    color: GOLD,
+    letterSpacing: 4,
+    marginBottom: scale(14),
+  },
+  title: {
+    fontSize: scale(30),
+    fontFamily: "Inter_700Bold",
+    color: "#F3EAFB",
+    lineHeight: scale(38),
+    marginBottom: scale(18),
+  },
+  body: {
+    fontSize: scale(16),
+    lineHeight: scale(24),
+    color: "rgba(243,234,251,0.78)",
+    maxWidth: "92%",
+    fontFamily: "Inter_400Regular",
+  },
+  dotsRow: {
+    position: "absolute",
+    bottom: scale(130),
+    flexDirection: "row",
+    alignSelf: "center",
+    gap: 8,
+  },
+  dot: { height: 8, borderRadius: 4, backgroundColor: GOLD },
+  bottomRow: {
+    position: "absolute",
+    bottom: scale(50),
+    left: scale(32),
+    right: scale(32),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  skipText: {
+    color: "rgba(243,234,251,0.6)",
+    fontSize: scale(15),
+    fontFamily: "Inter_600SemiBold",
+  },
+  nextButton: {
+    backgroundColor: GOLD,
+    paddingHorizontal: scale(28),
+    paddingVertical: scale(14),
+    borderRadius: scale(28),
+  },
+  nextButtonText: {
+    color: "#1A0F2E",
+    fontFamily: "Inter_700Bold",
+    fontSize: scale(15),
+  },
+});

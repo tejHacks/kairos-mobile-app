@@ -1,116 +1,110 @@
 import { useRouter } from "expo-router";
-import { BookOpen, Settings2 } from "lucide-react-native";
+import { Info, Settings2 } from "lucide-react-native";
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scaleFont, scaleSize } from "../hooks/useResponsive";
 
+const GOLD = "#D4AF37";
+
 interface TopBarProps {
-    title: string;
-    subtitle?: string;
+  title: string;
+  subtitle?: string;
 }
 
 export default function TopBar({ title, subtitle }: TopBarProps) {
-    const insets = useSafeAreaInsets();
-    const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
 
-    return (
-        <View
-            style={{
-                paddingTop: insets.top + scaleSize(10),
-                paddingHorizontal: scaleSize(20),
-                paddingBottom: scaleSize(16),
-                backgroundColor: "#1a0f2e",
-                borderBottomWidth: 1,
-                borderBottomColor: "rgba(212,175,55,0.12)",
-            }}
+  return (
+    <View
+      style={{
+        // insets.top alone keeps this clear of the notch/status bar on
+        // every device — iPhone notch/Dynamic Island, Android punch-hole,
+        // all handled automatically. Only a small fixed top gap added on
+        // top of that so it doesn't sit flush against it.
+        paddingTop: insets.top + scaleSize(8),
+        paddingHorizontal: scaleSize(16), // was 20 — tightened
+        paddingBottom: scaleSize(12), // was 20 — tightened
+        backgroundColor: "#1a0f2e",
+        borderBottomWidth: 1,
+        borderBottomColor: "rgba(212,175,55,0.12)",
+      }}
+    >
+      {/* Title + icons — same row, icons pushed right */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        {/* Title — style freely here */}
+        <Text
+          style={{
+            fontSize: scaleFont(20),
+            fontWeight: "700",
+            color: "#fff",
+            letterSpacing: 0.4,
+          }}
         >
-            {/* Top row — icons */}
-            <View
-                style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: scaleSize(4),
-                }}
-            >
-                {/* Left — About */}
-                <TouchableOpacity
-                    onPress={() => router.push("/(main)/about" as any)}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                    style={{ flexDirection: "row", alignItems: "center", gap: scaleSize(6) }}
-                >
-                    <BookOpen
-                        size={scaleSize(13)}
-                        color="rgba(255,255,255,0.35)"
-                        strokeWidth={1.8}
-                    />
-                    <Text
-                        style={{
-                            fontSize: scaleFont(10),
-                            color: "rgba(255,255,255,0.35)",
-                            letterSpacing: 1.5,
-                            textTransform: "uppercase",
-                            fontWeight: "600",
-                        }}
-                    >
-                        About
-                    </Text>
-                </TouchableOpacity>
+          {title}
+        </Text>
 
-                {/* KAIROS wordmark — center */}
-                <Text
-                    style={{
-                        fontSize: scaleFont(10),
-                        color: "#D4AF37",
-                        letterSpacing: 4,
-                        fontWeight: "700",
-                        textTransform: "uppercase",
-                    }}
-                >
-                    KAIROS
-                </Text>
+        {/* Icon buttons — About & Settings, right side, same row as title */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: scaleSize(10), // space between the two icon buttons
+          }}
+        >
+          <TouchableOpacity
+            onPress={() => router.push("/(main)/about" as any)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{
+              width: scaleSize(36), // was 34 — bumped up
+              height: scaleSize(36), // was 34 — bumped up
+              borderRadius: scaleSize(18),
+              backgroundColor: "rgba(212,175,55,0.08)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Info size={scaleSize(18)} color={GOLD} strokeWidth={1.8} />
+          </TouchableOpacity>
 
-                {/* Right — Settings */}
-                <TouchableOpacity
-                    onPress={() => router.push("/(main)/settings" as any)}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                    <Settings2
-                        size={scaleSize(18)}
-                        color="rgba(255,255,255,0.35)"
-                        strokeWidth={1.8}
-                    />
-                </TouchableOpacity>
-            </View>
-
-            {/* Title */}
-            <Text
-                style={{
-                    fontSize: scaleFont(26),
-                    fontWeight: "700",
-                    color: "#fff",
-                    letterSpacing: 0.4,
-                    marginTop: scaleSize(2),
-                }}
-            >
-                {title}
-            </Text>
-
-            {/* Subtitle */}
-            {subtitle ? (
-                <Text
-                    style={{
-                        fontSize: scaleFont(11),
-                        color: "rgba(255,255,255,0.3)",
-                        letterSpacing: 2,
-                        marginTop: 2,
-                        textTransform: "uppercase",
-                    }}
-                >
-                    {subtitle}
-                </Text>
-            ) : null}
+          <TouchableOpacity
+            onPress={() => router.push("/(main)/settings" as any)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{
+              width: scaleSize(36), // was 34 — bumped up
+              height: scaleSize(36), // was 34 — bumped up
+              borderRadius: scaleSize(18),
+              backgroundColor: "rgba(212,175,55,0.08)",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Settings2 size={scaleSize(18)} color={GOLD} strokeWidth={1.8} />
+          </TouchableOpacity>
         </View>
-    );
+      </View>
+
+      {/* Subtitle — style freely here */}
+      {subtitle ? (
+        <Text
+          style={{
+            fontSize: scaleFont(8), // was 11 — reduced
+            color: "rgba(255,255,255,0.35)",
+            letterSpacing: 2,
+            marginTop: scaleSize(4), // was 5 — tightened
+            textTransform: "uppercase",
+          }}
+        >
+          {subtitle}
+        </Text>
+      ) : null}
+    </View>
+  );
 }

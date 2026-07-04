@@ -1,11 +1,5 @@
 import { usePathname, useRouter } from "expo-router";
-import {
-  BookOpen,
-  Clock,
-  Droplets,
-  Flame,
-  PenTool
-} from "lucide-react-native";
+import { BookOpen, Clock, Droplets, Flame, PenTool } from "lucide-react-native";
 import React from "react";
 import { Dimensions, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -21,20 +15,25 @@ const scale = (size: number) => {
   return size;
 };
 
+const GOLD = "#D4AF37";
+
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
 
   const tabs = [
-    { label: "Kairos", icon: Clock, route: "/(main)/kairos" },
+    { label: "Pray", icon: Clock, route: "/(main)/kairos" },
     { label: "Meditate", icon: BookOpen, route: "/(main)/meditations" },
     { label: "Altar", icon: Flame, route: "/(main)/home", isMain: true },
     { label: "Scribe", icon: PenTool, route: "/(main)/scribe" },
     { label: "Fasting", icon: Droplets, route: "/(main)/fasting" },
-    // { label: "About", icon: BookOpen, route: "/(main)/about" },
-    // { label: "Settings", icon: Settings2, route: "/(main)/settings" },
   ];
+
+  // Guarantees at least ~12px of breathing room below the bar's
+  // content even on phones that report insets.bottom === 0
+  // (older Android 3-button nav sometimes does this).
+  const bottomPadding = Math.max(insets.bottom, scale(12));
 
   return (
     <View
@@ -42,7 +41,7 @@ export default function Navbar() {
         position: "absolute",
         bottom: 0,
         width,
-        paddingBottom: insets.bottom + 8,
+        paddingBottom: bottomPadding,
         backgroundColor: "#1a0f2e",
         borderTopWidth: 1,
         borderTopColor: "rgba(212, 175, 55, 0.2)",
@@ -83,7 +82,7 @@ export default function Navbar() {
                     justifyContent: "center",
                     alignItems: "center",
                     position: "absolute",
-                    shadowColor: "#D4AF37",
+                    shadowColor: GOLD,
                     shadowOpacity: 0.8,
                     shadowRadius: 20,
                     shadowOffset: { width: 0, height: 0 },
@@ -101,7 +100,7 @@ export default function Navbar() {
                     justifyContent: "center",
                     alignItems: "center",
                     borderWidth: 3,
-                    borderColor: "#D4AF37",
+                    borderColor: GOLD,
                   }}
                 >
                   {/* PURPLE INNER CORE */}
@@ -115,21 +114,9 @@ export default function Navbar() {
                       alignItems: "center",
                     }}
                   >
-                    <Icon size={scale(28)} color="#D4AF37" strokeWidth={2.5} />
+                    <Icon size={scale(28)} color={GOLD} strokeWidth={2.5} />
                   </View>
                 </View>
-
-                <Text
-                  style={{
-                    marginTop: scale(46),
-                    fontSize: scale(11),
-                    color: "#D4AF37",
-                    fontWeight: "700",
-                    letterSpacing: 1,
-                  }}
-                >
-                  {/* ALTAR */}
-                </Text>
               </TouchableOpacity>
             );
           }
@@ -144,13 +131,13 @@ export default function Navbar() {
             >
               <Icon
                 size={22}
-                color={isActive ? "#D4AF37" : "rgba(255,255,255,0.5)"}
+                color={isActive ? GOLD : "rgba(255,255,255,0.5)"}
                 strokeWidth={isActive ? 2.5 : 2}
               />
               <Text
                 style={{
                   fontSize: 10,
-                  color: isActive ? "#D4AF37" : "rgba(255,255,255,0.5)",
+                  color: isActive ? GOLD : "rgba(255,255,255,0.5)",
                   fontWeight: isActive ? "700" : "400",
                   letterSpacing: 0.5,
                 }}
