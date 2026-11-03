@@ -7,7 +7,7 @@ import {
 
 import BackgroundGradient from "@/components/BackgroundGradient";
 import { FONTS } from "@/constants/appConstants";
-import { playCustomSound } from "@/lib/customSound";
+// import { playCustomSound } from "@/lib/customSound";
 import * as Notifications from "expo-notifications";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -33,18 +33,6 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  useEffect(() => {
-    const subscription = Notifications.addNotificationReceivedListener(
-      async () => {
-        const prefs = await getNotificationPreferences();
-        if (prefs.soundEnabled && prefs.sound === "custom" && prefs.customSoundUri) {
-          await playCustomSound(prefs.customSoundUri);
-        }
-      },
-    );
-
-    return () => subscription.remove();
-  }, []);
 
   // Important: show nothing (keep splash) until fonts are ready or failed
   if (!fontsLoaded && !fontError) {

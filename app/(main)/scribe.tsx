@@ -1,36 +1,41 @@
-// app/(main)/scribe.tsx
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { LinearGradient } from "expo-linear-gradient";
-import React, { useEffect, useState } from "react";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
+import {
+  Bold,
+  FileDown,
+  Italic,
+  LayoutGrid,
+  List as ListIcon,
+  PenLine,
+  Plus,
+  Quote,
+  Trash2,
+  Underline,
+  X,
+} from "lucide-react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Alert,
-  Dimensions,
+  Animated,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  StyleSheet,
+  StatusBar,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { WebView } from "react-native-webview";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { scaleFont, scaleSize, verticalScale } from "../../hooks/useResponsive";
+import Navbar from "@/components/Navbar";
 
-import Navbar from "../../components/Navbar";
-import { SafeAreaView } from "react-native-safe-area-context";
+// ─── Types ────────────────────────────────────────────────────────────────
 
-const { width, height } = Dimensions.get("window");
+type ViewMode = "stack" | "grid";
 
-// Responsive helpers
-const isSmallDevice = width < 375;
-const isTablet = width >= 768;
-
-const scale = (size: number) => {
-  if (isTablet) return size * 1.2;
-  if (isSmallDevice) return size * 0.9;
-  return size;
-};
-
-type ViewMode = "grid" | "stack";
 type EntryTag =
   | "prayer"
   | "instruction"
@@ -48,11 +53,21 @@ type EntryTag =
 interface JournalEntry {
   id: string;
   title: string;
-  content: string;
+  content: string; // HTML from the rich text editor, not markdown
   tag: EntryTag;
   scriptureRef?: string;
   timestamp: Date;
 }
+
+// ─── Constants ──────────────────────────────────────────────────────────────
+
+const STORAGE_KEY = "@kairos/scribe_entries";
+
+const GOLD = "#D4AF37";
+const PURPLE = "#7C3AED";
+const BG = "#120a22";
+const PANEL = "#1a0f2e";
+const CARD = "#150c28";
 
 const tagColors: Record<EntryTag, string> = {
   prayer: "#3B82F6",
@@ -84,49 +99,255 @@ const tagLabels: Record<EntryTag, string> = {
   meditation: "Meditation",
 };
 
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+const htmlToPlainText = (html: string) =>
+  html
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<\/(p|div)>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const isEmptyContent = (html: string) => htmlToPlainText(html).length === 0;
+
+const formatTimestamp = (date: Date) => {
+  const diff = Date.now() - date.getTime();
+  const days = Math.floor(diff / 86_400_000);
+  if (days === 0)
+    return `Today, ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days} days ago`;
+  return date.toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" });
+};
+
+// ─── PDF export ─────────────────────────────────────────────────────────────
+
+const buildPdfHtml = (entry: JournalEntry) => `
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"/>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#FDF3E1; font-family: Georgia, serif; color:#1C0F05; padding:64px 72px; }
+  .tag { display:inline-block; font-size:10px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase;
+    color:#fff; background:${tagColors[entry.tag]}; padding:4px 10px; border-radius:8px; margin-bottom:14px; }
+  .scripture { font-size:12px; color:#8B5A2B; font-style:italic; margin-bottom:8px; }
+  h1 { font-size:26px; margin-bottom:6px; line-height:1.3; }
+  .meta { font-size:11px; color:rgba(44,24,16,0.45); margin-bottom:24px; font-style:italic; }
+  .divider { border:none; border-top:1px solid rgba(139,90,43,0.2); margin:16px 0 24px; }
+  .body { font-size:16px; line-height:32px; }
+  .body b, .body strong { font-weight:700; }
+  .footer { margin-top:48px; font-size:10px; color:rgba(44,24,16,0.3); font-style:italic; }
+</style></head>
+<body>
+  ${entry.scriptureRef ? `<div class="scripture">${entry.scriptureRef}</div>` : ""}
+  <div class="tag">${tagLabels[entry.tag]}</div>
+  <h1>${entry.title}</h1>
+  <div class="meta">${formatTimestamp(entry.timestamp)}</div>
+  <hr class="divider"/>
+  <div class="body">${entry.content}</div>
+  <div class="footer">Scribe · Kairos</div>
+</body></html>
+`;
+
+const exportEntryToPdf = async (entry: JournalEntry) => {
+  try {
+    const html = buildPdfHtml(entry);
+    const { uri } = await Print.printToFileAsync({ html, base64: false });
+    const canShare = await Sharing.isAvailableAsync();
+    if (canShare) {
+      await Sharing.shareAsync(uri, {
+        mimeType: "application/pdf",
+        dialogTitle: `${entry.title} — Scribe`,
+        UTI: "com.adobe.pdf",
+      });
+    } else {
+      Alert.alert("Saved", `PDF saved to:\n${uri}`);
+    }
+  } catch (e) {
+    Alert.alert("Export Failed", "Could not generate PDF. Please try again.");
+    console.error("[Scribe] PDF export error:", e);
+  }
+};
+
+// ─── Rich text editor (WebView contenteditable) ────────────────────────────
+// A plain TextInput can't hold more than one style at once, so real
+// "press B, it's bold now, keep typing, stays bold" behavior needs a real
+// contenteditable surface. Mirrors the pattern used in ExpoForge's CodeEditor
+// — a small bundled HTML page rendered in a WebView.
+
+const EDITOR_HTML = `<!DOCTYPE html>
+<html><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<style>
+  * { -webkit-tap-highlight-color: transparent; }
+  html, body { margin:0; padding:0; background: transparent; }
+  #editor {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 17px;
+    line-height: 30px;
+    color: #EDE7F6;
+    padding: 4px 4px 40px 4px;
+    min-height: 100vh;
+    outline: none;
+    caret-color: #D4AF37;
+  }
+  #editor:empty:before {
+    content: attr(data-placeholder);
+    color: rgba(237,231,246,0.28);
+  }
+  #editor b, #editor strong { font-weight: 700; color: #FFFFFF; }
+  #editor i, #editor em { font-style: italic; }
+</style></head>
+<body>
+<div id="editor" contenteditable="true" data-placeholder="Write what the Lord has spoken..."></div>
+<script>
+  const editor = document.getElementById('editor');
+  let debounceTimer;
+
+  function postMsg(payload) {
+    window.ReactNativeWebView && window.ReactNativeWebView.postMessage(JSON.stringify(payload));
+  }
+
+  function reportState() {
+    postMsg({
+      type: 'STATE',
+      bold: document.queryCommandState('bold'),
+      italic: document.queryCommandState('italic'),
+      underline: document.queryCommandState('underline'),
+    });
+  }
+
+  editor.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      postMsg({ type: 'CONTENT_CHANGED', content: editor.innerHTML });
+    }, 250);
+    reportState();
+  });
+
+  document.addEventListener('selectionchange', reportState);
+
+  document.addEventListener('message', handleMessage);
+  window.addEventListener('message', handleMessage);
+
+  function handleMessage(event) {
+    try {
+      const msg = JSON.parse(event.data);
+      if (msg.type === 'SET_CONTENT') {
+        editor.innerHTML = msg.content || '';
+      } else if (msg.type === 'FORMAT') {
+        editor.focus();
+        document.execCommand(msg.command, false, null);
+        postMsg({ type: 'CONTENT_CHANGED', content: editor.innerHTML });
+        reportState();
+      } else if (msg.type === 'FOCUS') {
+        editor.focus();
+      }
+    } catch (e) {}
+  }
+
+  postMsg({ type: 'READY' });
+</script>
+</body></html>`;
+
+type FormatState = { bold: boolean; italic: boolean; underline: boolean };
+
+function RichTextEditor({
+  content,
+  onChange,
+  onStateChange,
+  webviewRef,
+}: {
+  content: string;
+  onChange: (html: string) => void;
+  onStateChange: (state: FormatState) => void;
+  webviewRef: React.RefObject<WebView>;
+}) {
+  const isReady = useRef(false);
+  const lastPushed = useRef(content);
+
+  useEffect(() => {
+    if (isReady.current && content !== lastPushed.current) {
+      webviewRef.current?.postMessage(JSON.stringify({ type: "SET_CONTENT", content }));
+      lastPushed.current = content;
+    }
+  }, [content]);
+
+  return (
+    <WebView
+      ref={webviewRef}
+      originWhitelist={["*"]}
+      source={{ html: EDITOR_HTML }}
+      style={{ flex: 1, backgroundColor: "transparent" }}
+      containerStyle={{ backgroundColor: "transparent" }}
+      scrollEnabled
+      onMessage={(event) => {
+        try {
+          const msg = JSON.parse(event.nativeEvent.data);
+          if (msg.type === "READY") {
+            isReady.current = true;
+            webviewRef.current?.postMessage(JSON.stringify({ type: "SET_CONTENT", content }));
+            lastPushed.current = content;
+          } else if (msg.type === "CONTENT_CHANGED") {
+            lastPushed.current = msg.content;
+            onChange(msg.content);
+          } else if (msg.type === "STATE") {
+            onStateChange({ bold: msg.bold, italic: msg.italic, underline: msg.underline });
+          }
+        } catch (e) {}
+      }}
+    />
+  );
+}
+
+// ─── Main screen ────────────────────────────────────────────────────────────
+
 export default function ScribeScreen() {
+  const insets = useSafeAreaInsets();
+  const headerAnim = useRef(new Animated.Value(0)).current;
+
   const [viewMode, setViewMode] = useState<ViewMode>("stack");
   const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
   const [currentEntry, setCurrentEntry] = useState<JournalEntry | null>(null);
 
-  // Editor state
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [scriptureRef, setScriptureRef] = useState("");
   const [selectedTag, setSelectedTag] = useState<EntryTag>("prayer");
+  const [formatState, setFormatState] = useState<FormatState>({ bold: false, italic: false, underline: false });
 
-  // Load entries from AsyncStorage on mount
+  const webviewRef = useRef<WebView>(null);
+
   useEffect(() => {
-    loadEntries();
+    (async () => {
+      try {
+        const stored = await AsyncStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setEntries(parsed.map((e: any) => ({ ...e, timestamp: new Date(e.timestamp) })));
+        }
+      } catch (e) {
+        console.error("[Scribe] Failed to load entries:", e);
+      } finally {
+        setLoading(false);
+        Animated.timing(headerAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
+      }
+    })();
   }, []);
 
-  const loadEntries = async () => {
+  const persist = useCallback(async (list: JournalEntry[]) => {
     try {
-      const stored = await AsyncStorage.getItem("journal_entries");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Convert timestamp strings back to Date objects
-        const entriesWithDates = parsed.map((e: any) => ({
-          ...e,
-          timestamp: new Date(e.timestamp),
-        }));
-        setEntries(entriesWithDates);
-      }
-    } catch (error) {
-      console.error("Failed to load entries:", error);
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    } catch (e) {
+      console.error("[Scribe] Failed to save entries:", e);
     }
-  };
+  }, []);
 
-  const saveEntriesToStorage = async (newEntries: JournalEntry[]) => {
-    try {
-      await AsyncStorage.setItem("journal_entries", JSON.stringify(newEntries));
-    } catch (error) {
-      console.error("Failed to save entries:", error);
-    }
-  };
-
-  const createNewEntry = () => {
+  const openNew = () => {
     setCurrentEntry(null);
     setTitle("");
     setContent("");
@@ -135,38 +356,7 @@ export default function ScribeScreen() {
     setShowEditor(true);
   };
 
-  const saveEntry = () => {
-    if (!content.trim()) {
-      Alert.alert("Empty Entry", "Please write something before saving");
-      return;
-    }
-
-    const entry: JournalEntry = {
-      id: currentEntry?.id || Date.now().toString(),
-      title: title.trim() || "Untitled",
-      content: content.trim(),
-      tag: selectedTag,
-      scriptureRef: scriptureRef.trim() || undefined,
-      timestamp: currentEntry?.timestamp || new Date(),
-    };
-
-    if (currentEntry) {
-      const updated = entries.map((e) => (e.id === entry.id ? entry : e));
-      setEntries(updated);
-      saveEntriesToStorage(updated);
-    } else {
-      const updated = [entry, ...entries];
-      setEntries(updated);
-      saveEntriesToStorage(updated);
-    }
-
-    setShowEditor(false);
-    setTitle("");
-    setContent("");
-    setScriptureRef("");
-  };
-
-  const editEntry = (entry: JournalEntry) => {
+  const openEdit = (entry: JournalEntry) => {
     setCurrentEntry(entry);
     setTitle(entry.title);
     setContent(entry.content);
@@ -175,510 +365,433 @@ export default function ScribeScreen() {
     setShowEditor(true);
   };
 
-  const deleteEntry = (id: string) => {
-    Alert.alert(
-      "Delete Entry",
-      "Are you sure you want to delete this journal entry?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => {
-            const updated = entries.filter((e) => e.id !== id);
-            setEntries(updated);
-            saveEntriesToStorage(updated);
-          },
-        },
-      ],
-    );
-  };
-
-  const exportToPDF = () => {
-    Alert.alert(
-      "Coming Soon",
-      "PDF export will be available in the next update.",
-    );
-  };
-
-  const formatTimestamp = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (days === 0) {
-      return `Today, ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
-    } else if (days === 1) {
-      return "Yesterday";
-    } else if (days < 7) {
-      return `${days} days ago`;
-    } else {
-      return date.toLocaleDateString([], {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      });
+  const save = () => {
+    if (isEmptyContent(content)) {
+      Alert.alert("Empty Entry", "Write something before saving.");
+      return;
     }
+    const entry: JournalEntry = {
+      id: currentEntry?.id || Date.now().toString(),
+      title: title.trim() || "Untitled",
+      content,
+      tag: selectedTag,
+      scriptureRef: scriptureRef.trim() || undefined,
+      timestamp: currentEntry?.timestamp || new Date(),
+    };
+    const updated = currentEntry
+      ? entries.map((e) => (e.id === entry.id ? entry : e))
+      : [entry, ...entries];
+    setEntries(updated);
+    persist(updated);
+    setShowEditor(false);
   };
 
-  return (
-    <LinearGradient
-      colors={["#0a0312", "#17071e", "#29143d"]}
-      style={styles.container}
-      className="pb-16"
-    >
-      <SafeAreaView style={{ flex: 1 }}>
-        {!showEditor ? (
-          <>
-            <View style={styles.header}>
-              <View>
-                <Text style={styles.headerTitle}>Kairos</Text>
-                <Text style={styles.headerSubtitle}>
-                  Capture quiet prayers, dreams, and scripture reflections.
-                </Text>
-              </View>
-              <View style={styles.headerRight}>
-                <TouchableOpacity
-                  onPress={() =>
-                    setViewMode(viewMode === "grid" ? "stack" : "grid")
-                  }
-                  style={styles.viewToggle}
-                >
-                  <Text style={styles.viewToggleText}>
-                    {viewMode === "grid" ? "▦" : "☰"}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={createNewEntry}
-                  style={styles.addButton}
-                >
-                  <Text style={styles.addButtonText}>+</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+  const remove = (id: string) => {
+    Alert.alert("Delete Entry", "Delete this journal entry?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => {
+          const updated = entries.filter((e) => e.id !== id);
+          setEntries(updated);
+          persist(updated);
+        },
+      },
+    ]);
+  };
 
-            <ScrollView
-              contentContainerStyle={[
-                styles.entriesContainer,
-                viewMode === "grid" && styles.entriesGrid,
-              ]}
-            >
-              {entries.length === 0 ? (
-                <View style={styles.emptyState}>
-                  <Text style={styles.emptyTitle}>Your Journal Awaits</Text>
-                  <Text style={styles.emptyText}>
-                    Capture what God speaks. Write down instructions, prayers,
-                    dreams, and testimonies.
-                  </Text>
-                  <Text style={styles.emptySubtext}>Tap the + to begin</Text>
-                </View>
-              ) : (
-                entries.map((entry) => (
-                  <TouchableOpacity
-                    key={entry.id}
-                    style={[
-                      styles.entryCard,
-                      viewMode === "grid" && styles.entryCardGrid,
-                    ]}
-                    onPress={() => editEntry(entry)}
-                    onLongPress={() => deleteEntry(entry.id)}
-                  >
-                    <View style={styles.entryHeader}>
-                      <View
-                        style={[
-                          styles.entryTag,
-                          { backgroundColor: tagColors[entry.tag] },
-                        ]}
-                      >
-                        <Text style={styles.entryTagText}>
-                          {tagLabels[entry.tag]}
-                        </Text>
-                      </View>
-                      <Text style={styles.entryTimestamp}>
-                        {formatTimestamp(entry.timestamp)}
-                      </Text>
-                    </View>
+  const toggleFormat = (command: "bold" | "italic" | "underline") => {
+    webviewRef.current?.postMessage(JSON.stringify({ type: "FORMAT", command }));
+  };
 
-                    {entry.scriptureRef && (
-                      <Text style={styles.entryScripture}>
-                        {entry.scriptureRef}
-                      </Text>
-                    )}
-
-                    <Text style={styles.entryTitle} numberOfLines={2}>
-                      {entry.title}
-                    </Text>
-                    <Text style={styles.entryContent} numberOfLines={4}>
-                      {entry.content}
-                    </Text>
-                  </TouchableOpacity>
-                ))
-              )}
-            </ScrollView>
-          </>
-        ) : (
-          <KeyboardAvoidingView
-            style={styles.editorContainer}
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
+  // ── EDITOR VIEW ────────────────────────────────────────────────────────
+  if (showEditor) {
+    return (
+      <View style={{ flex: 1, backgroundColor: BG }}>
+        <StatusBar barStyle="light-content" backgroundColor={BG} />
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        >
+          {/* Top bar */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              paddingTop: insets.top + scaleSize(10),
+              paddingHorizontal: scaleSize(14),
+              paddingBottom: scaleSize(12),
+              backgroundColor: PANEL,
+              borderBottomWidth: 1,
+              borderBottomColor: "rgba(212,175,55,0.12)",
+              gap: scaleSize(8),
+            }}
           >
-            <View style={styles.editorHeader}>
-              <TouchableOpacity onPress={saveEntry} style={styles.saveButton}>
-                <Text style={styles.saveButtonText}>Save</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={exportToPDF}
-                style={styles.exportButton}
-              >
-                <Text style={styles.exportButtonText}>Export PDF</Text>
-              </TouchableOpacity>
-            </View>
-
-            <TextInput
-              style={styles.titleInput}
-              placeholder="Title (optional)"
-              placeholderTextColor="#BFDBFE"
-              value={title}
-              onChangeText={setTitle}
-            />
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.tagSelector}
-            >
-              {(Object.keys(tagLabels) as EntryTag[]).map((tag) => (
-                <TouchableOpacity
-                  key={tag}
-                  onPress={() => setSelectedTag(tag)}
-                  style={[
-                    styles.tagOption,
-                    selectedTag === tag && {
-                      backgroundColor: tagColors[tag],
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.tagOptionText,
-                      selectedTag === tag && styles.tagOptionTextSelected,
-                    ]}
-                  >
-                    {tagLabels[tag]}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-
-            <TextInput
-              style={styles.scriptureInput}
-              placeholder="Scripture Reference (e.g., John 3:16)"
-              placeholderTextColor="#BFDBFE"
-              value={scriptureRef}
-              onChangeText={setScriptureRef}
-            />
-
-            <TextInput
-              style={styles.contentInput}
-              placeholder="Write what the Lord has spoken..."
-              placeholderTextColor="#BFDBFE"
-              value={content}
-              onChangeText={setContent}
-              multiline
-              textAlignVertical="top"
-              autoFocus
-            />
-
             <TouchableOpacity
               onPress={() => setShowEditor(false)}
-              style={styles.cancelButton}
+              style={{
+                width: scaleSize(34),
+                height: scaleSize(34),
+                borderRadius: scaleSize(17),
+                backgroundColor: "rgba(255,255,255,0.06)",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <X size={scaleSize(16)} color="#fff" strokeWidth={2} />
             </TouchableOpacity>
-          </KeyboardAvoidingView>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
+              {(Object.keys(tagLabels) as EntryTag[]).map((tag) => {
+                const selected = selectedTag === tag;
+                return (
+                  <TouchableOpacity
+                    key={tag}
+                    onPress={() => setSelectedTag(tag)}
+                    style={{
+                      paddingHorizontal: scaleSize(12),
+                      paddingVertical: scaleSize(7),
+                      borderRadius: scaleSize(14),
+                      backgroundColor: selected ? tagColors[tag] : "rgba(255,255,255,0.06)",
+                      marginRight: scaleSize(6),
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: scaleFont(12),
+                        fontWeight: "600",
+                        color: selected ? "#fff" : "rgba(255,255,255,0.4)",
+                      }}
+                    >
+                      {tagLabels[tag]}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            <TouchableOpacity
+              onPress={save}
+              style={{
+                backgroundColor: PURPLE,
+                paddingHorizontal: scaleSize(16),
+                paddingVertical: scaleSize(9),
+                borderRadius: scaleSize(14),
+              }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "700", fontSize: scaleFont(13) }}>Save</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Fields */}
+          <View style={{ paddingHorizontal: scaleSize(18), paddingTop: scaleSize(16) }}>
+            <TextInput
+              style={{ fontSize: scaleFont(12), color: GOLD, fontStyle: "italic", marginBottom: scaleSize(6) }}
+              placeholder="Scripture reference · e.g. John 3:16"
+              placeholderTextColor="rgba(212,175,55,0.4)"
+              value={scriptureRef}
+              onChangeText={setScriptureRef}
+              returnKeyType="next"
+            />
+            <TextInput
+              style={{
+                fontSize: scaleFont(22),
+                fontWeight: "700",
+                color: "#fff",
+                marginBottom: scaleSize(10),
+              }}
+              placeholder="Title"
+              placeholderTextColor="rgba(255,255,255,0.25)"
+              value={title}
+              onChangeText={setTitle}
+              returnKeyType="next"
+            />
+          </View>
+
+          {/* Rich text body */}
+          <View style={{ flex: 1, paddingHorizontal: scaleSize(14) }}>
+            <RichTextEditor
+              webviewRef={webviewRef}
+              content={content}
+              onChange={setContent}
+              onStateChange={setFormatState}
+            />
+          </View>
+
+          {/* Formatting toolbar */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              backgroundColor: PANEL,
+              borderTopWidth: 1,
+              borderTopColor: "rgba(212,175,55,0.12)",
+              paddingHorizontal: scaleSize(12),
+              paddingVertical: scaleSize(8),
+              paddingBottom: scaleSize(8) + insets.bottom,
+              gap: scaleSize(6),
+            }}
+          >
+            <FormatButton active={formatState.bold} onPress={() => toggleFormat("bold")} icon={Bold} />
+            <FormatButton active={formatState.italic} onPress={() => toggleFormat("italic")} icon={Italic} />
+            <FormatButton active={formatState.underline} onPress={() => toggleFormat("underline")} icon={Underline} />
+            <View
+              style={{
+                width: 1,
+                height: scaleSize(24),
+                backgroundColor: "rgba(255,255,255,0.1)",
+                marginHorizontal: scaleSize(4),
+              }}
+            />
+            <View style={{ flex: 1 }} />
+            <TouchableOpacity
+              onPress={() => {
+                if (isEmptyContent(content)) {
+                  Alert.alert("Nothing to export", "Write something first.");
+                  return;
+                }
+                exportEntryToPdf({
+                  id: currentEntry?.id || Date.now().toString(),
+                  title: title.trim() || "Untitled",
+                  content,
+                  tag: selectedTag,
+                  scriptureRef: scriptureRef.trim() || undefined,
+                  timestamp: currentEntry?.timestamp || new Date(),
+                });
+              }}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: scaleSize(6),
+                paddingHorizontal: scaleSize(12),
+                paddingVertical: scaleSize(9),
+                borderRadius: scaleSize(12),
+                backgroundColor: "rgba(212,175,55,0.1)",
+              }}
+            >
+              <FileDown size={scaleSize(14)} color={GOLD} strokeWidth={2} />
+              <Text style={{ color: GOLD, fontSize: scaleFont(12), fontWeight: "700" }}>PDF</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    );
+  }
+
+  // ── LIST VIEW ────────────────────────────────────────────────────────────
+  return (
+    <View style={{ flex: 1, backgroundColor: BG }}>
+      <StatusBar barStyle="light-content" backgroundColor={BG} />
+
+      <Animated.View
+        style={{
+          opacity: headerAnim,
+          transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-12, 0] }) }],
+          paddingTop: insets.top + scaleSize(10),
+          paddingHorizontal: scaleSize(20),
+          paddingBottom: scaleSize(16),
+          backgroundColor: PANEL,
+          borderBottomWidth: 1,
+          borderBottomColor: "rgba(212,175,55,0.12)",
+        }}
+      >
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <View style={{ flex: 1 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: scaleSize(8), marginBottom: scaleSize(6) }}>
+              <PenLine size={scaleSize(14)} color={GOLD} strokeWidth={2} />
+              <Text
+                style={{
+                  fontSize: scaleFont(11),
+                  color: GOLD,
+                  letterSpacing: 2,
+                  textTransform: "uppercase",
+                  fontWeight: "600",
+                }}
+              >
+                Sacred Record
+              </Text>
+            </View>
+            <Text style={{ fontSize: scaleFont(28), fontWeight: "700", color: "#fff", letterSpacing: 0.5 }}>
+              Scribe
+            </Text>
+            <Text style={{ fontSize: scaleFont(12), color: "rgba(255,255,255,0.35)", letterSpacing: 2, marginTop: 2 }}>
+              CAPTURE · REMEMBER · RETURN
+            </Text>
+          </View>
+
+          <View style={{ flexDirection: "row", gap: scaleSize(10) }}>
+            <TouchableOpacity
+              onPress={() => setViewMode(viewMode === "grid" ? "stack" : "grid")}
+              style={{
+                width: scaleSize(40),
+                height: scaleSize(40),
+                borderRadius: scaleSize(20),
+                backgroundColor: "rgba(255,255,255,0.06)",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {viewMode === "grid" ? (
+                <ListIcon size={scaleSize(17)} color="rgba(255,255,255,0.7)" strokeWidth={2} />
+              ) : (
+                <LayoutGrid size={scaleSize(17)} color="rgba(255,255,255,0.7)" strokeWidth={2} />
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={openNew}
+              style={{
+                width: scaleSize(40),
+                height: scaleSize(40),
+                borderRadius: scaleSize(20),
+                backgroundColor: PURPLE,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Plus size={scaleSize(20)} color="#fff" strokeWidth={2.5} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {entries.length > 0 && (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: scaleSize(6),
+              backgroundColor: "rgba(212,175,55,0.12)",
+              paddingHorizontal: scaleSize(12),
+              paddingVertical: scaleSize(6),
+              borderRadius: scaleSize(20),
+              borderWidth: 1,
+              borderColor: "rgba(212,175,55,0.25)",
+              alignSelf: "flex-start",
+              marginTop: scaleSize(14),
+            }}
+          >
+            <View style={{ width: scaleSize(6), height: scaleSize(6), borderRadius: scaleSize(3), backgroundColor: GOLD }} />
+            <Text style={{ fontSize: scaleFont(11), color: GOLD, fontWeight: "600" }}>
+              {entries.length} {entries.length === 1 ? "entry" : "entries"} written
+            </Text>
+          </View>
         )}
-      </SafeAreaView>
+      </Animated.View>
+
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: scaleSize(16),
+          paddingTop: scaleSize(16),
+          paddingBottom: verticalScale(150) + insets.bottom + scaleSize(24),
+          flexDirection: viewMode === "grid" ? "row" : "column",
+          flexWrap: viewMode === "grid" ? "wrap" : "nowrap",
+          justifyContent: viewMode === "grid" ? "space-between" : undefined,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        {loading ? null : entries.length === 0 ? (
+          <View style={{ alignItems: "center", marginTop: verticalScale(80), paddingHorizontal: scaleSize(40), width: "100%" }}>
+            <Quote size={scaleSize(30)} color="rgba(212,175,55,0.3)" strokeWidth={1.5} />
+            <Text
+              style={{
+                fontSize: scaleFont(22),
+                fontWeight: "700",
+                color: "#fff",
+                marginTop: scaleSize(14),
+                marginBottom: scaleSize(10),
+                textAlign: "center",
+              }}
+            >
+              Your Journal Awaits
+            </Text>
+            <Text style={{ fontSize: scaleFont(14), color: "rgba(255,255,255,0.4)", textAlign: "center", lineHeight: scaleFont(21) }}>
+              Capture instructions, prayers, dreams, and testimonies. Tap + to begin.
+            </Text>
+          </View>
+        ) : (
+          entries.map((entry) => (
+            <TouchableOpacity
+              key={entry.id}
+              onPress={() => openEdit(entry)}
+              onLongPress={() =>
+                Alert.alert(entry.title, "What do you want to do?", [
+                  { text: "Export PDF", onPress: () => exportEntryToPdf(entry) },
+                  { text: "Delete", style: "destructive", onPress: () => remove(entry.id) },
+                  { text: "Cancel", style: "cancel" },
+                ])
+              }
+              activeOpacity={0.8}
+              style={{
+                width: viewMode === "grid" ? "48%" : "100%",
+                backgroundColor: CARD,
+                borderRadius: scaleSize(16),
+                padding: scaleSize(16),
+                marginBottom: scaleSize(12),
+                borderWidth: 1,
+                borderColor: "rgba(255,255,255,0.05)",
+              }}
+            >
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: scaleSize(8), flexWrap: "wrap", gap: 6 }}>
+                <View
+                  style={{
+                    backgroundColor: tagColors[entry.tag],
+                    paddingHorizontal: scaleSize(10),
+                    paddingVertical: scaleSize(4),
+                    borderRadius: scaleSize(8),
+                  }}
+                >
+                  <Text style={{ fontSize: scaleFont(10), fontWeight: "700", color: "#fff", letterSpacing: 0.4 }}>
+                    {tagLabels[entry.tag]}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: scaleFont(11), color: "rgba(255,255,255,0.35)" }}>
+                  {formatTimestamp(entry.timestamp)}
+                </Text>
+              </View>
+              {entry.scriptureRef && (
+                <Text style={{ fontSize: scaleFont(12), color: GOLD, fontWeight: "600", marginBottom: scaleSize(6) }}>
+                  {entry.scriptureRef}
+                </Text>
+              )}
+              <Text style={{ fontSize: scaleFont(17), fontWeight: "700", color: "#fff", marginBottom: scaleSize(6) }} numberOfLines={2}>
+                {entry.title}
+              </Text>
+              <Text style={{ fontSize: scaleFont(14), color: "rgba(255,255,255,0.5)", lineHeight: scaleFont(20) }} numberOfLines={viewMode === "grid" ? 4 : 2}>
+                {htmlToPlainText(entry.content)}
+              </Text>
+            </TouchableOpacity>
+          ))
+        )}
+      </ScrollView>
 
       <Navbar />
-    </LinearGradient>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingTop: 60,
-    paddingHorizontal: 24,
-    paddingBottom: 20,
-  },
-
-  headerTitle: {
-    fontSize: scale(28),
-    fontWeight: "800",
-    color: "#FFFFFF",
-  },
-
-  headerSubtitle: {
-    fontSize: scale(14),
-    color: "rgba(255,255,255,0.75)",
-    marginTop: 4,
-    lineHeight: scale(20),
-    maxWidth: width * 0.58,
-  },
-
-  headerRight: {
-    flexDirection: "row",
-    gap: 12,
-  },
-
-  viewToggle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  viewToggleText: {
-    fontSize: 20,
-    color: "#FFFFFF",
-  },
-
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#FFFFFF",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  addButtonText: {
-    fontSize: 28,
-    color: "#1E3A8A",
-    fontWeight: "300",
-  },
-
-  entriesContainer: {
-    padding: 24,
-    paddingBottom: 140,
-    minHeight: height,
-  },
-
-  entriesGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-
-  emptyState: {
-    alignItems: "center",
-    marginTop: 80,
-    paddingHorizontal: 40,
-  },
-
-  emptyTitle: {
-    fontSize: scale(28),
-    fontWeight: "700",
-    color: "#FFFFFF",
-    marginBottom: 16,
-    textAlign: "center",
-  },
-
-  emptyText: {
-    fontSize: scale(17),
-    color: "#E5E7EB",
-    textAlign: "center",
-    lineHeight: 26,
-    marginBottom: 12,
-  },
-
-  emptySubtext: {
-    fontSize: scale(15),
-    color: "#BFDBFE",
-    textAlign: "center",
-  },
-
-  entryCard: {
-    backgroundColor: "rgba(79, 18, 138, 0.28)",
-    borderRadius: 24,
-    padding: 18,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.16)",
-  },
-
-  entryCardGrid: {
-    width: width * 0.42,
-  },
-
-  entryHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 10,
-    flexWrap: "wrap",
-    gap: 8,
-  },
-
-  entryTag: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-
-  entryTagText: {
-    fontSize: 11,
-    fontWeight: "700",
-    color: "#FFFFFF",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-
-  entryTimestamp: {
-    fontSize: 11,
-    color: "#BFDBFE",
-    flexShrink: 1,
-  },
-
-  entryScripture: {
-    fontSize: scale(13),
-    color: "#FDE68A",
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-
-  entryTitle: {
-    fontSize: scale(18),
-    fontWeight: "700",
-    color: "#FFFFFF",
-    marginBottom: 8,
-  },
-
-  entryContent: {
-    fontSize: scale(15),
-    color: "#E5E7EB",
-    lineHeight: 22,
-  },
-
-  editorContainer: {
-    flex: 1,
-    paddingTop: 60,
-    paddingHorizontal: 24,
-    paddingBottom: 160,
-    minHeight: height,
-  },
-
-  editorHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-
-  saveButton: {
-    backgroundColor: "#D4AF37",
-    paddingHorizontal: 28,
-    paddingVertical: 12,
-    borderRadius: 20,
-  },
-
-  saveButtonText: {
-    fontSize: scale(17),
-    fontWeight: "700",
-    color: "#1a0f2e",
-  },
-
-  exportButton: {
-    backgroundColor: "rgba(255,255,255,0.12)",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
-  },
-
-  exportButtonText: {
-    fontSize: scale(15),
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-
-  titleInput: {
-    fontSize: scale(24),
-    fontWeight: "600",
-    color: "#FFFFFF",
-    marginBottom: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.18)",
-  },
-
-  tagSelector: {
-    marginBottom: 16,
-    maxHeight: 50,
-  },
-
-  tagOption: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 16,
-    backgroundColor: "rgba(255,255,255,0.08)",
-    marginRight: 8,
-  },
-
-  tagOptionText: {
-    fontSize: scale(13),
-    color: "#BFDBFE",
-    fontWeight: "600",
-  },
-
-  tagOptionTextSelected: {
-    color: "#FFFFFF",
-  },
-
-  scriptureInput: {
-    fontSize: scale(15),
-    color: "#FDE68A",
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderRadius: 16,
-    paddingHorizontal: 18,
-    paddingVertical: 14,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.22)",
-  },
-
-  contentInput: {
-    flex: 1,
-    fontSize: scale(17),
-    color: "#FFFFFF",
-    lineHeight: 26,
-    backgroundColor: "rgba(82, 36, 142, 0.22)",
-    borderRadius: 20,
-    padding: 18,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.18)",
-  },
-
-  cancelButton: {
-    backgroundColor: "rgba(255,255,255,0.14)",
-    paddingVertical: 14,
-    borderRadius: 20,
-    alignItems: "center",
-  },
-  cancelButtonText: {
-    fontSize: scale(16),
-    fontWeight: "600",
-    color: "#FFFFFF",
-  },
-});
+function FormatButton({
+  active,
+  onPress,
+  icon: Icon,
+}: {
+  active: boolean;
+  onPress: () => void;
+  icon: React.FC<any>;
+}) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={{
+        width: scaleSize(38),
+        height: scaleSize(38),
+        borderRadius: scaleSize(10),
+        backgroundColor: active ? GOLD : "rgba(255,255,255,0.06)",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Icon size={scaleSize(16)} color={active ? "#120a22" : "rgba(255,255,255,0.6)"} strokeWidth={2.2} />
+    </TouchableOpacity>
+  );
+}

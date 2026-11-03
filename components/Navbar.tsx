@@ -23,7 +23,7 @@ export default function Navbar() {
   const insets = useSafeAreaInsets();
 
   const tabs = [
-    { label: "Pray", icon: Clock, route: "/(main)/kairos" },
+    { label: "Plan", icon: Clock, route: "/(main)/plan" },
     { label: "Meditate", icon: BookOpen, route: "/(main)/meditations" },
     { label: "Altar", icon: Flame, route: "/(main)/home", isMain: true },
     { label: "Scribe", icon: PenTool, route: "/(main)/scribe" },

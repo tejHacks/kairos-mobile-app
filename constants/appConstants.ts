@@ -1,6 +1,6 @@
 // Color interface
 export const COLORS = {
-  primary: "#5B21B6",
+  primary: "#d6ac04",
   secondary: "#2d1b4e",
   background: "#000",
   text: "#FFF",

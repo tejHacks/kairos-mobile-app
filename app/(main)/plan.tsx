@@ -1,13 +1,5 @@
 import { useRouter } from "expo-router";
-import {
-  Bell,
-  ChevronDown,
-  ChevronUp,
-  Clock,
-  Plus,
-  Settings2,
-  Trash2,
-} from "lucide-react-native";
+import { Bell, Clock, Plus, Trash2 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Alert,
@@ -23,6 +15,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Navbar from "../../components/Navbar";
+import TopBar from "../../components/TopBar";
 import { scaleFont, scaleSize, verticalScale } from "../../hooks/useResponsive";
 import { PrayerHour, usePrayerTimes } from "../../hooks/usePrayerTimes";
 
@@ -36,12 +29,8 @@ const format12h = (time24: string): string => {
   return `${h12}:${mStr} ${period}`;
 };
 
-const wrap = (val: number, min: number, max: number, delta: number): number => {
-  let n = val + delta;
-  if (n > max) n = min;
-  if (n < min) n = max;
-  return n;
-};
+const clamp = (val: number, min: number, max: number): number =>
+  Math.min(max, Math.max(min, val));
 
 // ─── Prayer Card ──────────────────────────────────────────────────────────────
 
@@ -166,7 +155,7 @@ const PrayerCard: React.FC<PrayerCardProps> = ({
   );
 };
 
-// ─── Edit / Add Modal ─────────────────────────────────────────────────────────
+// ─── Edit / Add Modal — redesigned time entry ─────────────────────────────────
 
 interface ModalProps {
   visible: boolean;
@@ -185,8 +174,10 @@ const PrayerHourModal: React.FC<ModalProps> = ({
 }) => {
   const [name, setName] = useState("");
   const [subtitle, setSubtitle] = useState("");
-  const [hourVal, setHourVal] = useState(6);
-  const [minuteVal, setMinuteVal] = useState(0);
+  // Time is now plain text input instead of chevron spinners —
+  // simpler, faster to set, and behaves like a real time field.
+  const [hourText, setHourText] = useState("06");
+  const [minuteText, setMinuteText] = useState("00");
   const [ampm, setAmpm] = useState<"AM" | "PM">("AM");
 
   useEffect(() => {
@@ -195,22 +186,43 @@ const PrayerHourModal: React.FC<ModalProps> = ({
       setSubtitle(initial.subtitle);
       const [h, m] = initial.time.split(":").map(Number);
       setAmpm(h >= 12 ? "PM" : "AM");
-      setHourVal(h % 12 === 0 ? 12 : h % 12);
-      setMinuteVal(m);
+      const h12 = h % 12 === 0 ? 12 : h % 12;
+      setHourText(String(h12).padStart(2, "0"));
+      setMinuteText(String(m).padStart(2, "0"));
     } else {
       setName("");
       setSubtitle("");
-      setHourVal(6);
-      setMinuteVal(0);
+      setHourText("06");
+      setMinuteText("00");
       setAmpm("AM");
     }
   }, [initial, visible]);
+
+  // Only allow digits while typing, clamp once the field loses focus
+  // so partial input (like a single "1") doesn't get force-corrected
+  // mid-keystroke.
+  const onHourChange = (text: string) => {
+    setHourText(text.replace(/[^0-9]/g, "").slice(0, 2));
+  };
+  const onMinuteChange = (text: string) => {
+    setMinuteText(text.replace(/[^0-9]/g, "").slice(0, 2));
+  };
+  const onHourBlur = () => {
+    const n = clamp(parseInt(hourText || "12", 10) || 12, 1, 12);
+    setHourText(String(n).padStart(2, "0"));
+  };
+  const onMinuteBlur = () => {
+    const n = clamp(parseInt(minuteText || "0", 10) || 0, 0, 59);
+    setMinuteText(String(n).padStart(2, "0"));
+  };
 
   const handleSave = () => {
     if (!name.trim()) {
       Alert.alert("Name required", "Give this prayer time a name.");
       return;
     }
+    const hourVal = clamp(parseInt(hourText || "12", 10) || 12, 1, 12);
+    const minuteVal = clamp(parseInt(minuteText || "0", 10) || 0, 0, 59);
     let h24 = hourVal % 12;
     if (ampm === "PM") h24 += 12;
     const time24 = `${String(h24).padStart(2, "0")}:${String(minuteVal).padStart(2, "0")}`;
@@ -278,7 +290,7 @@ const PrayerHourModal: React.FC<ModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Name — fully editable always */}
+          {/* Name */}
           <Text style={s.label}>Name</Text>
           <TextInput
             value={name}
@@ -299,33 +311,26 @@ const PrayerHourModal: React.FC<ModalProps> = ({
             style={s.input}
           />
 
-          {/* Time */}
-          <Text style={[s.label, { marginTop: scaleSize(16) }]}>Time</Text>
+          {/* Time — clean input fields, no spinners */}
+          <Text style={[s.label, { marginTop: scaleSize(18) }]}>Time</Text>
           <View
             style={{
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
               gap: scaleSize(10),
-              marginTop: scaleSize(8),
+              marginTop: scaleSize(10),
             }}
           >
-            {/* Hour */}
-            <View style={s.spinner}>
-              <TouchableOpacity
-                onPress={() => setHourVal((v) => wrap(v, 1, 12, 1))}
-              >
-                <ChevronUp size={scaleSize(22)} color="#D4AF37" />
-              </TouchableOpacity>
-              <Text style={s.spinnerText}>
-                {String(hourVal).padStart(2, "0")}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setHourVal((v) => wrap(v, 1, 12, -1))}
-              >
-                <ChevronDown size={scaleSize(22)} color="#D4AF37" />
-              </TouchableOpacity>
-            </View>
+            <TextInput
+              value={hourText}
+              onChangeText={onHourChange}
+              onBlur={onHourBlur}
+              keyboardType="number-pad"
+              maxLength={2}
+              selectTextOnFocus
+              style={s.timeInput}
+            />
 
             <Text
               style={{
@@ -337,25 +342,18 @@ const PrayerHourModal: React.FC<ModalProps> = ({
               :
             </Text>
 
-            {/* Minute — 1-step for full control */}
-            <View style={s.spinner}>
-              <TouchableOpacity
-                onPress={() => setMinuteVal((v) => wrap(v, 0, 59, 1))}
-              >
-                <ChevronUp size={scaleSize(22)} color="#D4AF37" />
-              </TouchableOpacity>
-              <Text style={s.spinnerText}>
-                {String(minuteVal).padStart(2, "0")}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setMinuteVal((v) => wrap(v, 0, 59, -1))}
-              >
-                <ChevronDown size={scaleSize(22)} color="#D4AF37" />
-              </TouchableOpacity>
-            </View>
+            <TextInput
+              value={minuteText}
+              onChangeText={onMinuteChange}
+              onBlur={onMinuteBlur}
+              keyboardType="number-pad"
+              maxLength={2}
+              selectTextOnFocus
+              style={s.timeInput}
+            />
 
             {/* AM / PM */}
-            <View style={{ gap: scaleSize(8) }}>
+            <View style={{ gap: scaleSize(8), marginLeft: scaleSize(6) }}>
               {(["AM", "PM"] as const).map((p) => (
                 <TouchableOpacity
                   key={p}
@@ -385,19 +383,23 @@ const PrayerHourModal: React.FC<ModalProps> = ({
             </View>
           </View>
 
-          {/* Quick minute jumps */}
+          {/* Quick minute jumps — still handy for fast entry */}
           <View
             style={{
               flexDirection: "row",
               justifyContent: "center",
               gap: scaleSize(8),
-              marginTop: scaleSize(12),
+              marginTop: scaleSize(14),
             }}
           >
             {[5, 10, 15, 30].map((step) => (
               <TouchableOpacity
                 key={step}
-                onPress={() => setMinuteVal((v) => wrap(v, 0, 59, step))}
+                onPress={() => {
+                  const current = parseInt(minuteText || "0", 10) || 0;
+                  const next = (current + step) % 60;
+                  setMinuteText(String(next).padStart(2, "0"));
+                }}
                 style={{
                   paddingHorizontal: scaleSize(12),
                   paddingVertical: scaleSize(5),
@@ -472,27 +474,24 @@ const s = {
     paddingHorizontal: scaleSize(14),
     paddingVertical: scaleSize(12),
   },
-  spinner: {
-    alignItems: "center" as const,
+  timeInput: {
     backgroundColor: "#120a22",
     borderRadius: scaleSize(12),
     borderWidth: 1,
-    borderColor: "rgba(212,175,55,0.15)",
-    padding: scaleSize(10),
-    minWidth: scaleSize(68),
-  },
-  spinnerText: {
+    borderColor: "rgba(212,175,55,0.2)",
+    color: "#fff",
     fontSize: scaleFont(32),
     fontWeight: "200" as const,
-    color: "#fff",
-    marginVertical: scaleSize(4),
     letterSpacing: 3,
+    textAlign: "center" as const,
+    minWidth: scaleSize(68),
+    paddingVertical: scaleSize(8),
   },
 };
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
-export default function KairosScreen() {
+export default function PlanScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { hours, loading, toggleHour, saveHour, deleteHour } = usePrayerTimes();
@@ -500,18 +499,6 @@ export default function KairosScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingHour, setEditingHour] = useState<PrayerHour | null>(null);
   const [isNewHour, setIsNewHour] = useState(false);
-  const headerAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (!loading) {
-      Animated.timing(headerAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading]);
 
   const openEdit = (hour: PrayerHour) => {
     setEditingHour(hour);
@@ -558,7 +545,7 @@ export default function KairosScreen() {
             letterSpacing: 2,
           }}
         >
-          ENTERING KAIROS...
+          ENTERING PRAYER PLANS...
         </Text>
       </View>
     );
@@ -568,118 +555,10 @@ export default function KairosScreen() {
     <View style={{ flex: 1, backgroundColor: "#120a22" }}>
       <StatusBar barStyle="light-content" backgroundColor="#120a22" />
 
-      {/* ── Header ── */}
-      <Animated.View
-        style={{
-          opacity: headerAnim,
-          transform: [
-            {
-              translateY: headerAnim.interpolate({
-                inputRange: [0, 1],
-                outputRange: [-10, 0],
-              }),
-            },
-          ],
-          paddingTop: insets.top + scaleSize(10),
-          paddingHorizontal: scaleSize(20),
-          paddingBottom: scaleSize(16),
-          backgroundColor: "#1a0f2e",
-          borderBottomWidth: 1,
-          borderBottomColor: "rgba(212,175,55,0.12)",
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: scaleSize(4),
-          }}
-        >
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: scaleSize(8),
-            }}
-          >
-            <Clock size={scaleSize(13)} color="#D4AF37" strokeWidth={2} />
-            <Text
-              style={{
-                fontSize: scaleFont(10),
-                color: "#D4AF37",
-                letterSpacing: 2,
-                textTransform: "uppercase",
-                fontWeight: "600",
-              }}
-            >
-              Prayer Times
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => router.push("/(main)/settings" as any)}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
-            <Settings2
-              size={scaleSize(18)}
-              color="rgba(255,255,255,0.35)"
-              strokeWidth={1.8}
-            />
-          </TouchableOpacity>
-        </View>
+      {/* Shared TopBar handles the notch, About, and Settings now —
+          no more duplicate header clutter on this screen. */}
+      <TopBar title="Plans" subtitle="THE LITURGY OF THE HOURS" />
 
-        <Text
-          style={{
-            fontSize: scaleFont(26),
-            fontWeight: "700",
-            color: "#fff",
-            letterSpacing: 0.4,
-            marginTop: scaleSize(2),
-          }}
-        >
-          Kairos
-        </Text>
-        <Text
-          style={{
-            fontSize: scaleFont(11),
-            color: "rgba(255,255,255,0.3)",
-            letterSpacing: 2,
-            marginTop: 2,
-          }}
-        >
-          THE LITURGY OF THE HOURS
-        </Text>
-
-        {/* Active pill */}
-        <View style={{ flexDirection: "row", marginTop: scaleSize(12) }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: scaleSize(5),
-              backgroundColor: "rgba(124,58,237,0.18)",
-              paddingHorizontal: scaleSize(10),
-              paddingVertical: scaleSize(5),
-              borderRadius: scaleSize(20),
-              borderWidth: 1,
-              borderColor: "rgba(124,58,237,0.3)",
-            }}
-          >
-            <Bell size={scaleSize(10)} color="#a78bfa" strokeWidth={2} />
-            <Text
-              style={{
-                fontSize: scaleFont(10),
-                color: "#a78bfa",
-                fontWeight: "600",
-              }}
-            >
-              {enabledCount} of {hours.length} active
-            </Text>
-          </View>
-        </View>
-      </Animated.View>
-
-      {/* ── List ── */}
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: scaleSize(16),
@@ -688,6 +567,34 @@ export default function KairosScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
+        {/* Active pill */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: scaleSize(5),
+            alignSelf: "flex-start",
+            backgroundColor: "rgba(124,58,237,0.18)",
+            paddingHorizontal: scaleSize(10),
+            paddingVertical: scaleSize(5),
+            borderRadius: scaleSize(20),
+            borderWidth: 1,
+            borderColor: "rgba(124,58,237,0.3)",
+            marginBottom: scaleSize(16),
+          }}
+        >
+          <Bell size={scaleSize(10)} color="#a78bfa" strokeWidth={2} />
+          <Text
+            style={{
+              fontSize: scaleFont(10),
+              color: "#a78bfa",
+              fontWeight: "600",
+            }}
+          >
+            {enabledCount} of {hours.length} active
+          </Text>
+        </View>
+
         {hours.length === 0 && (
           <View
             style={{

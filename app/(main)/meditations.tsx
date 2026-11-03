@@ -1,12 +1,14 @@
 // app/(main)/meditation.tsx
 import { LinearGradient } from "expo-linear-gradient";
+import { BookOpen, ExternalLink, Quote, Sparkles } from "lucide-react-native";
 import React, { useMemo } from "react";
 import {
   Dimensions,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
-  // TouchableOpacity,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,7 +23,6 @@ import { themes } from "../../constants/themes";
 
 const { width, height } = Dimensions.get("window");
 
-// Responsive helper functions
 const isSmallDevice = width < 375;
 const isTablet = width >= 768;
 
@@ -31,9 +32,11 @@ const scale = (size: number) => {
   return size;
 };
 
-export default function MeditationScreen() {
-  // const [selectedTheme, setSelectedTheme] = useState<string | null>(null);
+const GOLD = "#D4AF37";
+const HAGAH_PLAY_STORE_URL =
+  "https://play.google.com/store/apps/details?id=com.olateju.hagahapp&hl=en-US&ah=thyd46Pzht8alpa3zQhdBaOTByQ";
 
+export default function MeditationScreen() {
   // Get daily content based on day of year
   const dayOfYear = useMemo(() => {
     const now = new Date();
@@ -43,18 +46,16 @@ export default function MeditationScreen() {
     return Math.floor(diff / oneDay);
   }, []);
 
-  // Today's rotating content
   const todaysVerse = dailyVerses[dayOfYear % dailyVerses.length];
   const todaysQuote = dailyQuotes[dayOfYear % dailyQuotes.length];
   const todaysPsalm = dailyPsalms[dayOfYear % dailyPsalms.length];
 
-  // TODAY'S THEME - picks ONE theme per day
   const themeKeys = Object.keys(themes);
   const todaysThemeKey = themeKeys[dayOfYear % themeKeys.length];
   const todaysTheme = themes[todaysThemeKey as keyof typeof themes];
   const todaysThemeVerse =
     todaysTheme.verses[
-    Math.floor(dayOfYear / themeKeys.length) % todaysTheme.verses.length
+      Math.floor(dayOfYear / themeKeys.length) % todaysTheme.verses.length
     ];
 
   return (
@@ -68,10 +69,12 @@ export default function MeditationScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-
           {/* VERSE OF THE DAY */}
           <View style={styles.dailyCard}>
-            <Text style={styles.cardLabel}>VERSE OF THE DAY</Text>
+            <View style={styles.cardLabelRow}>
+              <Sparkles size={scale(13)} color={GOLD} strokeWidth={2} />
+              <Text style={styles.cardLabel}>VERSE OF THE DAY</Text>
+            </View>
             <Text style={styles.verseText} selectable>
               {todaysVerse.text}
             </Text>
@@ -82,7 +85,10 @@ export default function MeditationScreen() {
 
           {/* DAILY QUOTE */}
           <View style={styles.quoteCard}>
-            <Text style={styles.cardLabel}>DAILY WISDOM</Text>
+            <View style={styles.cardLabelRow}>
+              <Quote size={scale(13)} color={GOLD} strokeWidth={2} />
+              <Text style={styles.cardLabel}>DAILY WISDOM</Text>
+            </View>
             <Text style={styles.quoteText} selectable>
               &quot;{todaysQuote.text}&quot;
             </Text>
@@ -93,7 +99,10 @@ export default function MeditationScreen() {
 
           {/* DAILY PSALM */}
           <View style={styles.psalmCard}>
-            <Text style={styles.cardLabel}>TODAY&apos;S PSALM</Text>
+            <View style={styles.cardLabelRow}>
+              <BookOpen size={scale(13)} color={GOLD} strokeWidth={2} />
+              <Text style={styles.cardLabel}>TODAY&apos;S PSALM</Text>
+            </View>
             <Text style={styles.psalmText} selectable>
               {todaysPsalm.text}
             </Text>
@@ -102,7 +111,7 @@ export default function MeditationScreen() {
             </Text>
           </View>
 
-          {/* TODAY'S THEME - ONE THEME PER DAY */}
+          {/* TODAY'S THEME — the one theme surfaced each day, no browser needed */}
           <View
             style={[
               styles.todaysThemeCard,
@@ -123,40 +132,23 @@ export default function MeditationScreen() {
             <Text style={styles.verseRef}>{todaysThemeVerse.ref}</Text>
           </View>
 
-          {/* ALL THEMES - BROWSE */}
-          {/* <Text style={styles.sectionTitle}>All Themes</Text>
-        <Text style={styles.sectionSubtitle}>
-          Tap to explore scriptures by theme
-        </Text>
-        {Object.entries(themes).map(([key, theme]) => (
-          <View key={key} style={styles.themeCard}>
+          {/* HAGAH CROSS-PROMO — want to go deeper than a daily verse? */}
+          <View style={styles.hagahCard}>
+            <Text style={styles.cardLabel}>GO DEEPER</Text>
+            <Text style={styles.hagahText}>
+              Want to speak these declarations out loud instead of just reading them? Hagah is our
+              scripture-declaration app — spoken meditation with TTS, breathing rhythm, and full KJV
+              battle topics.
+            </Text>
             <TouchableOpacity
-              style={styles.themeHeaderButton}
-              onPress={() =>
-                setSelectedTheme(selectedTheme === key ? null : key)
-              }
+              style={styles.hagahButton}
+              onPress={() => Linking.openURL(HAGAH_PLAY_STORE_URL)}
+              activeOpacity={0.85}
             >
-              <View
-                style={[styles.themeDot, { backgroundColor: theme.color }]}
-              />
-              <Text style={styles.themeTitle}>{theme.title}</Text>
-              <Text style={styles.themeChevron}>
-                {selectedTheme === key ? "▼" : "▶"}
-              </Text>
+              <ExternalLink size={scale(14)} color="#1a0f2e" strokeWidth={2.2} />
+              <Text style={styles.hagahButtonText}>Get Hagah</Text>
             </TouchableOpacity>
-
-            {selectedTheme === key && (
-              <View style={styles.themeExpanded}>
-                {theme.verses.map((verse, idx) => (
-                  <View key={idx} style={styles.themeVerse}>
-                    <Text style={styles.themeVerseText}>{verse.text}</Text>
-                    <Text style={styles.themeVerseRef}>— {verse.ref}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
           </View>
-        ))} */}
 
           <Text style={styles.footer}>
             &quot;Thy word is a lamp unto my feet, and a light unto my
@@ -177,27 +169,11 @@ const styles = StyleSheet.create({
   },
 
   content: {
-    paddingTop: scale(80),
+    // TopBar already renders above this — no extra top gap needed
+    paddingTop: scale(20),
     paddingBottom: 180, // Extra space for navbar
     paddingHorizontal: isTablet ? 40 : 24,
     minHeight: height,
-  },
-
-  header: {
-    fontSize: scale(34),
-    fontWeight: "700",
-    color: "#D4AF37",
-    marginBottom: 8,
-    textAlign: "center",
-    letterSpacing: 1,
-  },
-
-  subtitle: {
-    fontSize: scale(16),
-    color: "#D4AF37",
-    textAlign: "center",
-    marginBottom: scale(30),
-    letterSpacing: 1,
   },
 
   dailyCard: {
@@ -240,12 +216,54 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(48, 11, 98, 0.3)",
     padding: isTablet ? 28 : 24,
     borderRadius: 24,
-    marginBottom: 30,
+    marginBottom: 20,
     borderWidth: 1,
     width: "100%",
     maxWidth: isTablet ? 700 : undefined,
     alignSelf: "center",
     borderColor: "rgba(212, 175, 55, 0.25)",
+  },
+
+  hagahCard: {
+    backgroundColor: "rgba(212, 175, 55, 0.08)",
+    padding: isTablet ? 28 : 24,
+    borderRadius: 24,
+    marginBottom: 30,
+    borderWidth: 1,
+    width: "100%",
+    maxWidth: isTablet ? 700 : undefined,
+    alignSelf: "center",
+    borderColor: "rgba(212, 175, 55, 0.3)",
+  },
+
+  hagahText: {
+    fontSize: scale(14),
+    color: "rgba(255,255,255,0.7)",
+    lineHeight: scale(21),
+    marginBottom: 16,
+  },
+
+  hagahButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: GOLD,
+    borderRadius: 14,
+    paddingVertical: 13,
+  },
+
+  hagahButtonText: {
+    color: "#1a0f2e",
+    fontSize: scale(14),
+    fontWeight: "700",
+  },
+
+  cardLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 12,
   },
 
   cardLabel: {
@@ -306,89 +324,17 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 
+  themeDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+
   todaysThemeTitle: {
     fontSize: scale(20),
     fontWeight: "700",
     color: "#FFFFFF",
     marginLeft: 8,
-  },
-
-  sectionTitle: {
-    fontSize: scale(24),
-    fontWeight: "600",
-    color: "#FFFFFF",
-    marginTop: 20,
-    marginBottom: 10,
-    textAlign: isTablet ? "center" : "left",
-  },
-
-  sectionSubtitle: {
-    fontSize: scale(14),
-    color: "rgba(255, 255, 255, 0.6)",
-    marginBottom: 20,
-    textAlign: isTablet ? "center" : "left",
-  },
-
-  themeCard: {
-    backgroundColor: "rgba(255,255,255,0.08)",
-    borderRadius: 16,
-    marginBottom: 12,
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
-    width: "100%",
-    maxWidth: isTablet ? 700 : undefined,
-    alignSelf: "center",
-  },
-
-  themeHeaderButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 18,
-  },
-
-  themeDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 12,
-  },
-
-  themeTitle: {
-    flex: 1,
-    fontSize: scale(18),
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-
-  themeChevron: {
-    fontSize: scale(14),
-    color: "#D4AF37",
-  },
-
-  themeExpanded: {
-    paddingHorizontal: 18,
-    paddingBottom: 18,
-  },
-
-  themeVerse: {
-    backgroundColor: "rgba(0,0,0,0.2)",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-
-  themeVerseText: {
-    fontSize: scale(16),
-    color: "rgba(255, 255, 255, 0.9)",
-    lineHeight: scale(26),
-    marginBottom: 8,
-  },
-
-  themeVerseRef: {
-    fontSize: scale(13),
-    color: "#D4AF37",
-    fontWeight: "600",
   },
 
   footer: {
