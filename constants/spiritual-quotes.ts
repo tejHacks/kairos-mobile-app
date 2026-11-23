@@ -369,10 +369,6 @@ export const dailyQuotes = [
     author: "C.S. Lewis",
   },
   {
-    text: "You are never too old to set another goal or to dream a new dream.",
-    author: "C.S. Lewis",
-  },
-  {
     text: "Courage is not simply one of the virtues, but the form of every virtue at the testing point.",
     author: "C.S. Lewis",
   },

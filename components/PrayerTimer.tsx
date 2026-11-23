@@ -1,6 +1,8 @@
 import React from "react";
 import { Text, TouchableOpacity, View } from "react-native";
-import { COLORS, DIMENSIONS } from "../constants/appConstants";
+import { DIMENSIONS } from "../constants/appConstants";
+
+import { c } from "@/constants/theme";
 
 interface PrayerTimerProps {
   minutes: number;
@@ -36,7 +38,7 @@ export const PrayerTimer: React.FC<PrayerTimerProps> = ({
           style={{
             fontSize: scale(72),
             fontWeight: "300",
-            color: COLORS.text,
+            color: c.text,
             letterSpacing: 2,
           }}
         >
@@ -45,7 +47,7 @@ export const PrayerTimer: React.FC<PrayerTimerProps> = ({
         <Text
           style={{
             fontSize: scale(36),
-            color: COLORS.primary,
+            color: c.gold,
             marginBottom: 12,
             marginLeft: 8,
             fontWeight: "300",
@@ -58,7 +60,7 @@ export const PrayerTimer: React.FC<PrayerTimerProps> = ({
       <TouchableOpacity onPress={onBack} style={{ marginVertical: 20 }}>
         <Text
           style={{
-            color: COLORS.primary,
+            color: c.gold,
             fontSize: 16,
             fontWeight: "600",
           }}
@@ -77,13 +79,13 @@ export const PrayerTimer: React.FC<PrayerTimerProps> = ({
             marginTop: 30,
             minWidth: 260,
             borderWidth: 2,
-            borderColor: COLORS.primary,
+            borderColor: c.gold,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
             gap: 8,
           },
-          !canFinishPrayer && { borderColor: "#4A4A4A", opacity: 0.5 },
+          !canFinishPrayer && { borderColor: c.ink(0.22), opacity: 0.5 },
         ]}
         disabled={!canFinishPrayer}
         onPress={onFinish}
@@ -91,13 +93,13 @@ export const PrayerTimer: React.FC<PrayerTimerProps> = ({
         <Text
           style={[
             {
-              color: COLORS.primary,
+              color: c.gold,
               fontWeight: "700",
               fontSize: 16,
               letterSpacing: 2,
               textAlign: "center",
             },
-            !canFinishPrayer && { color: "#6B7280" },
+            !canFinishPrayer && { color: c.textMuted },
           ]}
         >
           I HAVE PRAYED

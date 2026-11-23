@@ -32,6 +32,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scaleFont, scaleSize, verticalScale } from "../../hooks/useResponsive";
 import Navbar from "@/components/Navbar";
 
+import { c } from "@/constants/theme";
+
 // ─── Types ────────────────────────────────────────────────────────────────
 
 type ViewMode = "stack" | "grid";
@@ -63,24 +65,18 @@ interface JournalEntry {
 
 const STORAGE_KEY = "@kairos/scribe_entries";
 
-const GOLD = "#D4AF37";
-const PURPLE = "#7C3AED";
-const BG = "#120a22";
-const PANEL = "#1a0f2e";
-const CARD = "#150c28";
-
 const tagColors: Record<EntryTag, string> = {
   prayer: "#3B82F6",
-  instruction: "#8B5CF6",
+  instruction: c.violet,
   insight: "#F59E0B",
   song: "#EC4899",
   dream: "#06B6D4",
   testimony: "#10B981",
-  burden: "#EF4444",
+  burden: c.danger,
   prayerpoint: "#F97316",
   wisdom: "#84CC16",
-  word: "#A78BFA",
-  temptation: "#DC2626",
+  word: c.violet,
+  temptation: c.danger,
   meditation: "#14B8A6",
 };
 
@@ -320,7 +316,7 @@ export default function ScribeScreen() {
   const [selectedTag, setSelectedTag] = useState<EntryTag>("prayer");
   const [formatState, setFormatState] = useState<FormatState>({ bold: false, italic: false, underline: false });
 
-  const webviewRef = useRef<WebView>(null);
+  const webviewRef = useRef<WebView>(null!);
 
   useEffect(() => {
     (async () => {
@@ -408,8 +404,8 @@ export default function ScribeScreen() {
   // ── EDITOR VIEW ────────────────────────────────────────────────────────
   if (showEditor) {
     return (
-      <View style={{ flex: 1, backgroundColor: BG }}>
-        <StatusBar barStyle="light-content" backgroundColor={BG} />
+      <View style={{ flex: 1, backgroundColor: c.bg }}>
+        <StatusBar barStyle="light-content" backgroundColor={c.bg} />
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -423,9 +419,9 @@ export default function ScribeScreen() {
               paddingTop: insets.top + scaleSize(10),
               paddingHorizontal: scaleSize(14),
               paddingBottom: scaleSize(12),
-              backgroundColor: PANEL,
+              backgroundColor: c.bg,
               borderBottomWidth: 1,
-              borderBottomColor: "rgba(212,175,55,0.12)",
+              borderBottomColor: c.goldA(0.12),
               gap: scaleSize(8),
             }}
           >
@@ -435,12 +431,12 @@ export default function ScribeScreen() {
                 width: scaleSize(34),
                 height: scaleSize(34),
                 borderRadius: scaleSize(17),
-                backgroundColor: "rgba(255,255,255,0.06)",
+                backgroundColor: c.wash(0.06),
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <X size={scaleSize(16)} color="#fff" strokeWidth={2} />
+              <X size={scaleSize(16)} color={c.text} strokeWidth={2} />
             </TouchableOpacity>
 
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flex: 1 }}>
@@ -454,7 +450,7 @@ export default function ScribeScreen() {
                       paddingHorizontal: scaleSize(12),
                       paddingVertical: scaleSize(7),
                       borderRadius: scaleSize(14),
-                      backgroundColor: selected ? tagColors[tag] : "rgba(255,255,255,0.06)",
+                      backgroundColor: selected ? tagColors[tag] : c.ink(0.06),
                       marginRight: scaleSize(6),
                     }}
                   >
@@ -462,7 +458,7 @@ export default function ScribeScreen() {
                       style={{
                         fontSize: scaleFont(12),
                         fontWeight: "600",
-                        color: selected ? "#fff" : "rgba(255,255,255,0.4)",
+                        color: selected ? c.text : c.ink(0.4),
                       }}
                     >
                       {tagLabels[tag]}
@@ -475,22 +471,22 @@ export default function ScribeScreen() {
             <TouchableOpacity
               onPress={save}
               style={{
-                backgroundColor: PURPLE,
+                backgroundColor: c.violet,
                 paddingHorizontal: scaleSize(16),
                 paddingVertical: scaleSize(9),
                 borderRadius: scaleSize(14),
               }}
             >
-              <Text style={{ color: "#fff", fontWeight: "700", fontSize: scaleFont(13) }}>Save</Text>
+              <Text style={{ color: c.text, fontWeight: "700", fontSize: scaleFont(13) }}>Save</Text>
             </TouchableOpacity>
           </View>
 
           {/* Fields */}
           <View style={{ paddingHorizontal: scaleSize(18), paddingTop: scaleSize(16) }}>
             <TextInput
-              style={{ fontSize: scaleFont(12), color: GOLD, fontStyle: "italic", marginBottom: scaleSize(6) }}
+              style={{ fontSize: scaleFont(12), color: c.gold, fontStyle: "italic", marginBottom: scaleSize(6) }}
               placeholder="Scripture reference · e.g. John 3:16"
-              placeholderTextColor="rgba(212,175,55,0.4)"
+              placeholderTextColor={c.goldA(0.4)}
               value={scriptureRef}
               onChangeText={setScriptureRef}
               returnKeyType="next"
@@ -499,11 +495,11 @@ export default function ScribeScreen() {
               style={{
                 fontSize: scaleFont(22),
                 fontWeight: "700",
-                color: "#fff",
+                color: c.text,
                 marginBottom: scaleSize(10),
               }}
               placeholder="Title"
-              placeholderTextColor="rgba(255,255,255,0.25)"
+              placeholderTextColor={c.ink(0.25)}
               value={title}
               onChangeText={setTitle}
               returnKeyType="next"
@@ -525,9 +521,9 @@ export default function ScribeScreen() {
             style={{
               flexDirection: "row",
               alignItems: "center",
-              backgroundColor: PANEL,
+              backgroundColor: c.bg,
               borderTopWidth: 1,
-              borderTopColor: "rgba(212,175,55,0.12)",
+              borderTopColor: c.goldA(0.12),
               paddingHorizontal: scaleSize(12),
               paddingVertical: scaleSize(8),
               paddingBottom: scaleSize(8) + insets.bottom,
@@ -541,7 +537,7 @@ export default function ScribeScreen() {
               style={{
                 width: 1,
                 height: scaleSize(24),
-                backgroundColor: "rgba(255,255,255,0.1)",
+                backgroundColor: c.wash(0.1),
                 marginHorizontal: scaleSize(4),
               }}
             />
@@ -568,11 +564,11 @@ export default function ScribeScreen() {
                 paddingHorizontal: scaleSize(12),
                 paddingVertical: scaleSize(9),
                 borderRadius: scaleSize(12),
-                backgroundColor: "rgba(212,175,55,0.1)",
+                backgroundColor: c.goldA(0.1),
               }}
             >
-              <FileDown size={scaleSize(14)} color={GOLD} strokeWidth={2} />
-              <Text style={{ color: GOLD, fontSize: scaleFont(12), fontWeight: "700" }}>PDF</Text>
+              <FileDown size={scaleSize(14)} color={c.gold} strokeWidth={2} />
+              <Text style={{ color: c.gold, fontSize: scaleFont(12), fontWeight: "700" }}>PDF</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -582,8 +578,8 @@ export default function ScribeScreen() {
 
   // ── LIST VIEW ────────────────────────────────────────────────────────────
   return (
-    <View style={{ flex: 1, backgroundColor: BG }}>
-      <StatusBar barStyle="light-content" backgroundColor={BG} />
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={c.bg} />
 
       <Animated.View
         style={{
@@ -592,19 +588,19 @@ export default function ScribeScreen() {
           paddingTop: insets.top + scaleSize(10),
           paddingHorizontal: scaleSize(20),
           paddingBottom: scaleSize(16),
-          backgroundColor: PANEL,
+          backgroundColor: c.bg,
           borderBottomWidth: 1,
-          borderBottomColor: "rgba(212,175,55,0.12)",
+          borderBottomColor: c.goldA(0.12),
         }}
       >
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: scaleSize(8), marginBottom: scaleSize(6) }}>
-              <PenLine size={scaleSize(14)} color={GOLD} strokeWidth={2} />
+              <PenLine size={scaleSize(14)} color={c.gold} strokeWidth={2} />
               <Text
                 style={{
                   fontSize: scaleFont(11),
-                  color: GOLD,
+                  color: c.gold,
                   letterSpacing: 2,
                   textTransform: "uppercase",
                   fontWeight: "600",
@@ -613,10 +609,10 @@ export default function ScribeScreen() {
                 Sacred Record
               </Text>
             </View>
-            <Text style={{ fontSize: scaleFont(28), fontWeight: "700", color: "#fff", letterSpacing: 0.5 }}>
+            <Text style={{ fontSize: scaleFont(28), fontWeight: "700", color: c.text, letterSpacing: 0.5 }}>
               Scribe
             </Text>
-            <Text style={{ fontSize: scaleFont(12), color: "rgba(255,255,255,0.35)", letterSpacing: 2, marginTop: 2 }}>
+            <Text style={{ fontSize: scaleFont(12), color: c.ink(0.35), letterSpacing: 2, marginTop: 2 }}>
               CAPTURE · REMEMBER · RETURN
             </Text>
           </View>
@@ -628,15 +624,15 @@ export default function ScribeScreen() {
                 width: scaleSize(40),
                 height: scaleSize(40),
                 borderRadius: scaleSize(20),
-                backgroundColor: "rgba(255,255,255,0.06)",
+                backgroundColor: c.wash(0.06),
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
               {viewMode === "grid" ? (
-                <ListIcon size={scaleSize(17)} color="rgba(255,255,255,0.7)" strokeWidth={2} />
+                <ListIcon size={scaleSize(17)} color={c.ink(0.7)} strokeWidth={2} />
               ) : (
-                <LayoutGrid size={scaleSize(17)} color="rgba(255,255,255,0.7)" strokeWidth={2} />
+                <LayoutGrid size={scaleSize(17)} color={c.ink(0.7)} strokeWidth={2} />
               )}
             </TouchableOpacity>
             <TouchableOpacity
@@ -645,12 +641,12 @@ export default function ScribeScreen() {
                 width: scaleSize(40),
                 height: scaleSize(40),
                 borderRadius: scaleSize(20),
-                backgroundColor: PURPLE,
+                backgroundColor: c.violet,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Plus size={scaleSize(20)} color="#fff" strokeWidth={2.5} />
+              <Plus size={scaleSize(20)} color={c.text} strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
         </View>
@@ -661,18 +657,18 @@ export default function ScribeScreen() {
               flexDirection: "row",
               alignItems: "center",
               gap: scaleSize(6),
-              backgroundColor: "rgba(212,175,55,0.12)",
+              backgroundColor: c.goldA(0.12),
               paddingHorizontal: scaleSize(12),
               paddingVertical: scaleSize(6),
               borderRadius: scaleSize(20),
               borderWidth: 1,
-              borderColor: "rgba(212,175,55,0.25)",
+              borderColor: c.goldA(0.25),
               alignSelf: "flex-start",
               marginTop: scaleSize(14),
             }}
           >
-            <View style={{ width: scaleSize(6), height: scaleSize(6), borderRadius: scaleSize(3), backgroundColor: GOLD }} />
-            <Text style={{ fontSize: scaleFont(11), color: GOLD, fontWeight: "600" }}>
+            <View style={{ width: scaleSize(6), height: scaleSize(6), borderRadius: scaleSize(3), backgroundColor: c.gold }} />
+            <Text style={{ fontSize: scaleFont(11), color: c.gold, fontWeight: "600" }}>
               {entries.length} {entries.length === 1 ? "entry" : "entries"} written
             </Text>
           </View>
@@ -692,12 +688,12 @@ export default function ScribeScreen() {
       >
         {loading ? null : entries.length === 0 ? (
           <View style={{ alignItems: "center", marginTop: verticalScale(80), paddingHorizontal: scaleSize(40), width: "100%" }}>
-            <Quote size={scaleSize(30)} color="rgba(212,175,55,0.3)" strokeWidth={1.5} />
+            <Quote size={scaleSize(30)} color={c.goldA(0.3)} strokeWidth={1.5} />
             <Text
               style={{
                 fontSize: scaleFont(22),
                 fontWeight: "700",
-                color: "#fff",
+                color: c.text,
                 marginTop: scaleSize(14),
                 marginBottom: scaleSize(10),
                 textAlign: "center",
@@ -705,7 +701,7 @@ export default function ScribeScreen() {
             >
               Your Journal Awaits
             </Text>
-            <Text style={{ fontSize: scaleFont(14), color: "rgba(255,255,255,0.4)", textAlign: "center", lineHeight: scaleFont(21) }}>
+            <Text style={{ fontSize: scaleFont(14), color: c.ink(0.4), textAlign: "center", lineHeight: scaleFont(21) }}>
               Capture instructions, prayers, dreams, and testimonies. Tap + to begin.
             </Text>
           </View>
@@ -724,12 +720,12 @@ export default function ScribeScreen() {
               activeOpacity={0.8}
               style={{
                 width: viewMode === "grid" ? "48%" : "100%",
-                backgroundColor: CARD,
+                backgroundColor: c.bg,
                 borderRadius: scaleSize(16),
                 padding: scaleSize(16),
                 marginBottom: scaleSize(12),
                 borderWidth: 1,
-                borderColor: "rgba(255,255,255,0.05)",
+                borderColor: c.ink(0.05),
               }}
             >
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: scaleSize(8), flexWrap: "wrap", gap: 6 }}>
@@ -741,23 +737,23 @@ export default function ScribeScreen() {
                     borderRadius: scaleSize(8),
                   }}
                 >
-                  <Text style={{ fontSize: scaleFont(10), fontWeight: "700", color: "#fff", letterSpacing: 0.4 }}>
+                  <Text style={{ fontSize: scaleFont(10), fontWeight: "700", color: c.text, letterSpacing: 0.4 }}>
                     {tagLabels[entry.tag]}
                   </Text>
                 </View>
-                <Text style={{ fontSize: scaleFont(11), color: "rgba(255,255,255,0.35)" }}>
+                <Text style={{ fontSize: scaleFont(11), color: c.ink(0.35) }}>
                   {formatTimestamp(entry.timestamp)}
                 </Text>
               </View>
               {entry.scriptureRef && (
-                <Text style={{ fontSize: scaleFont(12), color: GOLD, fontWeight: "600", marginBottom: scaleSize(6) }}>
+                <Text style={{ fontSize: scaleFont(12), color: c.gold, fontWeight: "600", marginBottom: scaleSize(6) }}>
                   {entry.scriptureRef}
                 </Text>
               )}
-              <Text style={{ fontSize: scaleFont(17), fontWeight: "700", color: "#fff", marginBottom: scaleSize(6) }} numberOfLines={2}>
+              <Text style={{ fontSize: scaleFont(17), fontWeight: "700", color: c.text, marginBottom: scaleSize(6) }} numberOfLines={2}>
                 {entry.title}
               </Text>
-              <Text style={{ fontSize: scaleFont(14), color: "rgba(255,255,255,0.5)", lineHeight: scaleFont(20) }} numberOfLines={viewMode === "grid" ? 4 : 2}>
+              <Text style={{ fontSize: scaleFont(14), color: c.ink(0.5), lineHeight: scaleFont(20) }} numberOfLines={viewMode === "grid" ? 4 : 2}>
                 {htmlToPlainText(entry.content)}
               </Text>
             </TouchableOpacity>
@@ -786,12 +782,12 @@ function FormatButton({
         width: scaleSize(38),
         height: scaleSize(38),
         borderRadius: scaleSize(10),
-        backgroundColor: active ? GOLD : "rgba(255,255,255,0.06)",
+        backgroundColor: active ? c.gold : c.ink(0.06),
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Icon size={scaleSize(16)} color={active ? "#120a22" : "rgba(255,255,255,0.6)"} strokeWidth={2.2} />
+      <Icon size={scaleSize(16)} color={active ? c.bg : c.ink(0.6)} strokeWidth={2.2} />
     </TouchableOpacity>
   );
 }

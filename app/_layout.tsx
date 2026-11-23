@@ -1,22 +1,18 @@
-import {
-    Inter_400Regular,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    useFonts,
-} from "@expo-google-fonts/inter";
+import { Inter_400Regular, Inter_600SemiBold, Inter_700Bold, useFonts } from "@expo-google-fonts/inter";
 
 import BackgroundGradient from "@/components/BackgroundGradient";
 import { FONTS } from "@/constants/appConstants";
-// import { playCustomSound } from "@/lib/customSound";
-import * as Notifications from "expo-notifications";
+import { loadThemeChoice, usePalette } from "@/constants/theme";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { StatusBar } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import "../global.css"; // Keep if you're using Tailwind/NativeWind
-import { getNotificationPreferences } from "../hooks/usePrayerTimes";
+import "../global.css";
+import { rescheduleSavedPrayerNotifications } from "../hooks/usePrayerTimes";
 
-// Prevent splash from auto-hiding (do this outside the component)
+// Keep the splash up until fonts and the saved theme are ready
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -25,24 +21,39 @@ export default function RootLayout() {
     [FONTS.semibold]: Inter_600SemiBold,
     [FONTS.bold]: Inter_700Bold,
   });
+  const [themeReady, setThemeReady] = useState(false);
+  const palette = usePalette();
 
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      // Hide splash even if fonts failed → better UX than stuck splash
-      SplashScreen.hideAsync().catch(console.warn);
-    }
-  }, [fontsLoaded, fontError]);
+    loadThemeChoice().finally(() => setThemeReady(true));
+  }, []);
 
+  // Make sure prayer reminders are scheduled every time the app starts
+  // (after onboarding, so the permission prompt comes at the right moment).
+  useEffect(() => {
+    (async () => {
+      const onboarded = await AsyncStorage.getItem("@kairos:first_open_complete").catch(() => null);
+      if (onboarded === "true") await rescheduleSavedPrayerNotifications();
+    })();
+  }, []);
 
-  // Important: show nothing (keep splash) until fonts are ready or failed
-  if (!fontsLoaded && !fontError) {
-    return null;
-  }
+  const ready = (fontsLoaded || !!fontError) && themeReady;
+
+  useEffect(() => {
+    if (ready) SplashScreen.hideAsync().catch(console.warn);
+  }, [ready]);
+
+  if (!ready) return null;
 
   return (
     <SafeAreaProvider>
+      <StatusBar barStyle={palette.scheme === "dark" ? "light-content" : "dark-content"} backgroundColor={palette.bg} />
       <BackgroundGradient>
-        <Stack screenOptions={{ headerShown: false }} />
+        {/* Re-keyed on theme change so every screen re-renders with the new palette */}
+        <Stack
+          key={palette.scheme}
+          screenOptions={{ headerShown: false, contentStyle: { backgroundColor: palette.bg }, animation: "fade" }}
+        />
       </BackgroundGradient>
     </SafeAreaProvider>
   );

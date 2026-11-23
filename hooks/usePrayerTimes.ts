@@ -26,6 +26,7 @@ export type NotificationSound =
   | "custom";
 
 export interface NotificationPreferences {
+  remindersEnabled: boolean;
   soundEnabled: boolean;
   sound: NotificationSound;
   customSoundUri?: string;
@@ -82,17 +83,20 @@ export async function getNotificationPreferences(): Promise<NotificationPreferen
     const raw = await AsyncStorage.getItem(SETTINGS_KEY);
     if (!raw) {
       return {
+        remindersEnabled: true,
         soundEnabled: true,
         sound: DEFAULT_NOTIFICATION_SOUND,
       };
     }
     const settings = JSON.parse(raw) as {
+      remindersEnabled?: boolean;
       soundEnabled?: boolean;
       notificationSound?: NotificationSound;
       customNotificationSoundUri?: string;
       customNotificationSoundName?: string;
     };
     return {
+      remindersEnabled: settings.remindersEnabled ?? true,
       soundEnabled: settings.soundEnabled ?? true,
       sound: settings.notificationSound ?? DEFAULT_NOTIFICATION_SOUND,
       customSoundUri: settings.customNotificationSoundUri,
@@ -101,18 +105,30 @@ export async function getNotificationPreferences(): Promise<NotificationPreferen
   } catch (e) {
     console.warn("[Kairos] Notification preferences read failed:", e);
     return {
+      remindersEnabled: true,
       soundEnabled: true,
       sound: DEFAULT_NOTIFICATION_SOUND,
     };
   }
 }
 
+/** Short KJV verses on prayer, one per reminder. */
+export const REMINDER_VERSES = [
+  "Pray without ceasing. (1 Thessalonians 5:17)",
+  "Evening, and morning, and at noon, will I pray, and cry aloud: and he shall hear my voice. (Psalm 55:17)",
+  "Continue in prayer, and watch in the same with thanksgiving. (Colossians 4:2)",
+  "Men ought always to pray, and not to faint. (Luke 18:1)",
+  "Seek the LORD and his strength, seek his face continually. (1 Chronicles 16:11)",
+  "The effectual fervent prayer of a righteous man availeth much. (James 5:16)",
+  "Call unto me, and I will answer thee. (Jeremiah 33:3)",
+];
+
 async function rescheduleNotifications(hours: PrayerHour[]): Promise<void> {
   try {
     const granted = await requestPermission();
     if (!granted) return;
 
-    const { soundEnabled, sound } = await getNotificationPreferences();
+    const { remindersEnabled, soundEnabled, sound } = await getNotificationPreferences();
     const isCustom = sound === "custom";
     const notificationSound = soundEnabled
       ? isCustom
@@ -136,12 +152,15 @@ async function rescheduleNotifications(hours: PrayerHour[]): Promise<void> {
       kairosIds.map((id) => Notifications.cancelScheduledNotificationAsync(id)),
     );
 
-    for (const hour of hours.filter((h) => h.enabled)) {
+    // Reminders switched off in Settings: leave nothing scheduled.
+    if (!remindersEnabled) return;
+
+    for (const [i, hour] of hours.filter((h) => h.enabled).entries()) {
       const [hStr, mStr] = hour.time.split(":");
       await Notifications.scheduleNotificationAsync({
         content: {
           title: `🕊️ ${hour.name}`,
-          body: hour.subtitle,
+          body: `${hour.subtitle}\n${REMINDER_VERSES[i % REMINDER_VERSES.length]}`,
           sound: notificationSound,
           data: { kairos: true, prayerHourId: hour.id },
         },
@@ -149,6 +168,7 @@ async function rescheduleNotifications(hours: PrayerHour[]): Promise<void> {
           type: Notifications.SchedulableTriggerInputTypes.DAILY,
           hour: parseInt(hStr, 10),
           minute: parseInt(mStr, 10),
+          channelId: "prayer",
         },
       });
     }

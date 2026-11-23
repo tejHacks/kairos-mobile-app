@@ -21,6 +21,8 @@ import { dailyVerses } from "../../constants/daily-verses";
 import { dailyQuotes } from "../../constants/spiritual-quotes";
 import { themes } from "../../constants/themes";
 
+import { c, themed } from "@/constants/theme";
+
 const { width, height } = Dimensions.get("window");
 
 const isSmallDevice = width < 375;
@@ -32,7 +34,6 @@ const scale = (size: number) => {
   return size;
 };
 
-const GOLD = "#D4AF37";
 const HAGAH_PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=com.olateju.hagahapp&hl=en-US&ah=thyd46Pzht8alpa3zQhdBaOTByQ";
 
@@ -60,7 +61,7 @@ export default function MeditationScreen() {
 
   return (
     <LinearGradient
-      colors={["#0f0518", "#1a0f2e", "#29143d"]}
+      colors={[c.bg, c.bg]}
       style={styles.container}
     >
       <SafeAreaView style={{ flex: 1 }}>
@@ -72,7 +73,7 @@ export default function MeditationScreen() {
           {/* VERSE OF THE DAY */}
           <View style={styles.dailyCard}>
             <View style={styles.cardLabelRow}>
-              <Sparkles size={scale(13)} color={GOLD} strokeWidth={2} />
+              <Sparkles size={scale(13)} color={c.gold} strokeWidth={2} />
               <Text style={styles.cardLabel}>VERSE OF THE DAY</Text>
             </View>
             <Text style={styles.verseText} selectable>
@@ -86,7 +87,7 @@ export default function MeditationScreen() {
           {/* DAILY QUOTE */}
           <View style={styles.quoteCard}>
             <View style={styles.cardLabelRow}>
-              <Quote size={scale(13)} color={GOLD} strokeWidth={2} />
+              <Quote size={scale(13)} color={c.gold} strokeWidth={2} />
               <Text style={styles.cardLabel}>DAILY WISDOM</Text>
             </View>
             <Text style={styles.quoteText} selectable>
@@ -100,7 +101,7 @@ export default function MeditationScreen() {
           {/* DAILY PSALM */}
           <View style={styles.psalmCard}>
             <View style={styles.cardLabelRow}>
-              <BookOpen size={scale(13)} color={GOLD} strokeWidth={2} />
+              <BookOpen size={scale(13)} color={c.gold} strokeWidth={2} />
               <Text style={styles.cardLabel}>TODAY&apos;S PSALM</Text>
             </View>
             <Text style={styles.psalmText} selectable>
@@ -145,7 +146,7 @@ export default function MeditationScreen() {
               onPress={() => Linking.openURL(HAGAH_PLAY_STORE_URL)}
               activeOpacity={0.85}
             >
-              <ExternalLink size={scale(14)} color="#1a0f2e" strokeWidth={2.2} />
+              <ExternalLink size={scale(14)} color={c.bg} strokeWidth={2.2} />
               <Text style={styles.hagahButtonText}>Get Hagah</Text>
             </TouchableOpacity>
           </View>
@@ -163,7 +164,7 @@ export default function MeditationScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -177,43 +178,43 @@ const styles = StyleSheet.create({
   },
 
   dailyCard: {
-    backgroundColor: "rgba(77, 21, 123, 0.28)",
+    backgroundColor: c.surface,
     padding: isTablet ? 28 : 24,
     borderRadius: 24,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.2)",
+    borderColor: c.goldA(0.2),
     width: "100%",
     maxWidth: isTablet ? 700 : undefined,
     alignSelf: "center",
   },
 
   quoteCard: {
-    backgroundColor: "rgba(90, 37, 168, 0.25)",
+    backgroundColor: c.surface,
     padding: isTablet ? 28 : 24,
     borderRadius: 24,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.2)",
+    borderColor: c.goldA(0.2),
     width: "100%",
     maxWidth: isTablet ? 700 : undefined,
     alignSelf: "center",
   },
 
   psalmCard: {
-    backgroundColor: "rgba(60, 18, 110, 0.25)",
+    backgroundColor: c.surface,
     padding: isTablet ? 28 : 24,
     borderRadius: 24,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: "rgba(212, 175, 55, 0.2)",
+    borderColor: c.goldA(0.2),
     width: "100%",
     maxWidth: isTablet ? 700 : undefined,
     alignSelf: "center",
   },
 
   todaysThemeCard: {
-    backgroundColor: "rgba(48, 11, 98, 0.3)",
+    backgroundColor: c.surface,
     padding: isTablet ? 28 : 24,
     borderRadius: 24,
     marginBottom: 20,
@@ -221,11 +222,11 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: isTablet ? 700 : undefined,
     alignSelf: "center",
-    borderColor: "rgba(212, 175, 55, 0.25)",
+    borderColor: c.goldA(0.25),
   },
 
   hagahCard: {
-    backgroundColor: "rgba(212, 175, 55, 0.08)",
+    backgroundColor: c.goldA(0.08),
     padding: isTablet ? 28 : 24,
     borderRadius: 24,
     marginBottom: 30,
@@ -233,12 +234,12 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: isTablet ? 700 : undefined,
     alignSelf: "center",
-    borderColor: "rgba(212, 175, 55, 0.3)",
+    borderColor: c.goldA(0.3),
   },
 
   hagahText: {
     fontSize: scale(14),
-    color: "rgba(255,255,255,0.7)",
+    color: c.ink(0.7),
     lineHeight: scale(21),
     marginBottom: 16,
   },
@@ -248,13 +249,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: GOLD,
+    backgroundColor: c.gold,
     borderRadius: 14,
     paddingVertical: 13,
   },
 
   hagahButtonText: {
-    color: "#1a0f2e",
+    color: c.bg,
     fontSize: scale(14),
     fontWeight: "700",
   },
@@ -269,7 +270,7 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontSize: scale(11),
     fontWeight: "700",
-    color: "#D4AF37",
+    color: c.gold,
     letterSpacing: 2,
     marginBottom: 12,
   },
@@ -277,21 +278,21 @@ const styles = StyleSheet.create({
   verseText: {
     fontSize: scale(18),
     lineHeight: scale(30),
-    color: "#FFFFFF",
+    color: c.text,
     marginBottom: 12,
     fontStyle: "italic",
   },
 
   verseRef: {
     fontSize: scale(14),
-    color: "#D4AF37",
+    color: c.gold,
     fontWeight: "600",
     textAlign: "right",
   },
 
   quoteText: {
     fontSize: scale(17),
-    color: "#FFFFFF",
+    color: c.text,
     lineHeight: scale(28),
     marginBottom: 12,
     fontStyle: "italic",
@@ -299,14 +300,14 @@ const styles = StyleSheet.create({
 
   quoteAuthor: {
     fontSize: scale(14),
-    color: "#A78BFA",
+    color: c.violet,
     fontWeight: "600",
     textAlign: "right",
   },
 
   psalmText: {
     fontSize: scale(17),
-    color: "#FFFFFF",
+    color: c.text,
     lineHeight: scale(28),
     marginBottom: 12,
   },
@@ -333,17 +334,17 @@ const styles = StyleSheet.create({
   todaysThemeTitle: {
     fontSize: scale(20),
     fontWeight: "700",
-    color: "#FFFFFF",
+    color: c.text,
     marginLeft: 8,
   },
 
   footer: {
     marginTop: 40,
     fontSize: scale(15),
-    color: "rgba(255, 255, 255, 0.6)",
+    color: c.ink(0.6),
     textAlign: "center",
     lineHeight: scale(24),
     fontStyle: "italic",
     marginBottom: 20,
   },
-});
+}));

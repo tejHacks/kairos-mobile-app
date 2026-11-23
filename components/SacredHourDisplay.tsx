@@ -1,6 +1,8 @@
 import React from "react";
 import { Animated, Text, View } from "react-native";
-import { COLORS, FONTS } from "../constants/appConstants";
+import { FONTS } from "../constants/appConstants";
+
+import { c } from "@/constants/theme";
 
 interface SacredHourDisplayProps {
   currentSacredHour:
@@ -23,13 +25,13 @@ export const SacredHourDisplay: React.FC<SacredHourDisplayProps> = ({
           {
             flexDirection: "row",
             alignItems: "center",
-            backgroundColor: "rgba(212, 175, 55, 0.15)",
+            backgroundColor: c.goldA(0.15),
             paddingVertical: 8,
             paddingHorizontal: 16,
             borderRadius: 20,
             marginTop: 10,
             borderWidth: 1,
-            borderColor: COLORS.primary,
+            borderColor: c.gold,
           },
           { transform: [{ scale: pulseAnim }] },
         ]}
@@ -39,13 +41,13 @@ export const SacredHourDisplay: React.FC<SacredHourDisplayProps> = ({
             width: 8,
             height: 8,
             borderRadius: 4,
-            backgroundColor: COLORS.primary,
+            backgroundColor: c.gold,
             marginRight: 8,
           }}
         />
         <Text
           style={{
-            color: COLORS.primary,
+            color: c.gold,
             fontSize: 12,
             fontWeight: "700",
             letterSpacing: 1.5,
@@ -61,7 +63,7 @@ export const SacredHourDisplay: React.FC<SacredHourDisplayProps> = ({
           style={{
             fontSize: 24,
             fontFamily: FONTS.regular,
-            color: COLORS.text,
+            color: c.text,
             textAlign: "center",
             marginBottom: 6,
           }}
@@ -71,7 +73,7 @@ export const SacredHourDisplay: React.FC<SacredHourDisplayProps> = ({
         <Text
           style={{
             fontSize: 12,
-            color: COLORS.primary,
+            color: c.gold,
             letterSpacing: 2,
             fontWeight: "600",
           }}

@@ -39,6 +39,8 @@ import {
 import Navbar from "@/components/Navbar";
 import TopBar from "../../components/TopBar";
 
+import { c } from "@/constants/theme";
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 type FastType = "water" | "partial" | "daniel" | "full" | "phone" | "word" | "dry";
@@ -53,14 +55,6 @@ interface FastState {
 }
 
 const STORAGE_KEY = "@kairos/fast_state";
-
-const GOLD = "#D4AF37";
-const PURPLE = "#7C3AED";
-const BG = "#120a22";
-const PANEL = "#1a0f2e";
-const CARD = "#150c28";
-const CARD_SELECTED = "#1e1035";
-const DANGER = "#ff5050";
 
 // ─── Fast plan library ──────────────────────────────────────────────────────
 
@@ -206,7 +200,7 @@ const ArcRing: React.FC<{ progress: number; size: number }> = ({ progress, size 
           height: size - strokeW,
           borderRadius: (size - strokeW) / 2,
           borderWidth: strokeW,
-          borderColor: "rgba(212,175,55,0.1)",
+          borderColor: c.goldA(0.1),
         }}
       />
       <View
@@ -216,10 +210,10 @@ const ArcRing: React.FC<{ progress: number; size: number }> = ({ progress, size 
           height: size - strokeW,
           borderRadius: (size - strokeW) / 2,
           borderWidth: strokeW,
-          borderTopColor: progress > 0 ? GOLD : "transparent",
-          borderRightColor: progress > 0.25 ? GOLD : "transparent",
-          borderBottomColor: progress > 0.5 ? GOLD : "transparent",
-          borderLeftColor: progress > 0.75 ? GOLD : "transparent",
+          borderTopColor: progress > 0 ? c.gold : "transparent",
+          borderRightColor: progress > 0.25 ? c.gold : "transparent",
+          borderBottomColor: progress > 0.5 ? c.gold : "transparent",
+          borderLeftColor: progress > 0.75 ? c.gold : "transparent",
           transform: [{ rotate: "-90deg" }],
         }}
       />
@@ -402,14 +396,14 @@ export default function FastingScreen() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: BG, alignItems: "center", justifyContent: "center" }}>
-        <Droplets size={scaleSize(28)} color={GOLD} strokeWidth={1.5} />
+      <View style={{ flex: 1, backgroundColor: c.bg, alignItems: "center", justifyContent: "center" }}>
+        <Droplets size={scaleSize(28)} color={c.gold} strokeWidth={1.5} />
       </View>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: BG }}>
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
       <TopBar title="Fasting" subtitle="Deny yourself · Draw near" />
 
       <ScrollView
@@ -428,16 +422,16 @@ export default function FastingScreen() {
                   flexDirection: "row",
                   alignItems: "center",
                   gap: scaleSize(6),
-                  backgroundColor: "rgba(212,175,55,0.12)",
+                  backgroundColor: c.goldA(0.12),
                   paddingHorizontal: scaleSize(12),
                   paddingVertical: scaleSize(6),
                   borderRadius: scaleSize(20),
                   borderWidth: 1,
-                  borderColor: "rgba(212,175,55,0.25)",
+                  borderColor: c.goldA(0.25),
                 }}
               >
-                <View style={{ width: scaleSize(6), height: scaleSize(6), borderRadius: scaleSize(3), backgroundColor: GOLD }} />
-                <Text style={{ fontSize: scaleFont(11), color: GOLD, fontWeight: "600" }}>
+                <View style={{ width: scaleSize(6), height: scaleSize(6), borderRadius: scaleSize(3), backgroundColor: c.gold }} />
+                <Text style={{ fontSize: scaleFont(11), color: c.gold, fontWeight: "600" }}>
                   {activePlan.label} · started {fast.startTime ? formatClock(fast.startTime) : ""}
                 </Text>
               </View>
@@ -446,11 +440,11 @@ export default function FastingScreen() {
             <Animated.View style={{ transform: [{ scale: pulseAnim }], alignItems: "center", marginBottom: scaleSize(8) }}>
               <ArcRing progress={progress} size={arcSize} />
               <View style={{ position: "absolute", alignItems: "center", justifyContent: "center", width: arcSize, height: arcSize }}>
-                <Text style={{ fontSize: scaleFont(38), fontWeight: "200", color: "#fff", letterSpacing: 4 }}>
+                <Text style={{ fontSize: scaleFont(38), fontWeight: "200", color: c.text, letterSpacing: 4 }}>
                   {time.h}:{time.m}
                 </Text>
-                <Text style={{ fontSize: scaleFont(13), color: "rgba(255,255,255,0.35)", letterSpacing: 2 }}>{time.s}s</Text>
-                <Text style={{ fontSize: scaleFont(10), color: GOLD, letterSpacing: 1.5, marginTop: scaleSize(4) }}>
+                <Text style={{ fontSize: scaleFont(13), color: c.ink(0.35), letterSpacing: 2 }}>{time.s}s</Text>
+                <Text style={{ fontSize: scaleFont(10), color: c.gold, letterSpacing: 1.5, marginTop: scaleSize(4) }}>
                   {activePlan.label.toUpperCase()}
                 </Text>
               </View>
@@ -461,7 +455,7 @@ export default function FastingScreen() {
                 style={{
                   textAlign: "center",
                   fontSize: scaleFont(12),
-                  color: "rgba(255,255,255,0.4)",
+                  color: c.ink(0.4),
                   marginBottom: scaleSize(20),
                 }}
               >
@@ -472,21 +466,21 @@ export default function FastingScreen() {
             <View
               style={{
                 width: "100%",
-                backgroundColor: PANEL,
+                backgroundColor: c.bg,
                 borderRadius: scaleSize(16),
                 padding: scaleSize(18),
                 borderWidth: 1,
-                borderColor: "rgba(212,175,55,0.12)",
+                borderColor: c.goldA(0.12),
                 marginBottom: scaleSize(20),
               }}
             >
-              <Text style={{ fontSize: scaleFont(10), color: GOLD, letterSpacing: 2, textTransform: "uppercase", marginBottom: scaleSize(10) }}>
+              <Text style={{ fontSize: scaleFont(10), color: c.gold, letterSpacing: 2, textTransform: "uppercase", marginBottom: scaleSize(10) }}>
                 Scripture
               </Text>
-              <Text style={{ fontSize: scaleFont(14), color: "rgba(255,255,255,0.8)", lineHeight: scaleFont(22), fontStyle: "italic" }}>
+              <Text style={{ fontSize: scaleFont(14), color: c.ink(0.8), lineHeight: scaleFont(22), fontStyle: "italic" }}>
                 &quot;{activePlan.verse}&quot;
               </Text>
-              <Text style={{ fontSize: scaleFont(11), color: "rgba(212,175,55,0.6)", marginTop: scaleSize(10), textAlign: "right" }}>
+              <Text style={{ fontSize: scaleFont(11), color: c.goldA(0.6), marginTop: scaleSize(10), textAlign: "right" }}>
                 — {activePlan.ref}
               </Text>
             </View>
@@ -510,29 +504,29 @@ export default function FastingScreen() {
                 marginTop: scaleSize(20),
               }}
             >
-              <Square size={scaleSize(16)} color={DANGER} strokeWidth={2} />
-              <Text style={{ color: DANGER, fontSize: scaleFont(15), fontWeight: "700", letterSpacing: 0.8 }}>End Fast</Text>
+              <Square size={scaleSize(16)} color={c.danger} strokeWidth={2} />
+              <Text style={{ color: c.danger, fontSize: scaleFont(15), fontWeight: "700", letterSpacing: 0.8 }}>End Fast</Text>
             </TouchableOpacity>
           </>
         ) : (
           <>
             <View
               style={{
-                backgroundColor: PANEL,
+                backgroundColor: c.bg,
                 borderRadius: scaleSize(16),
                 padding: scaleSize(18),
                 borderWidth: 1,
-                borderColor: "rgba(212,175,55,0.12)",
+                borderColor: c.goldA(0.12),
                 marginBottom: scaleSize(20),
               }}
             >
               <View style={{ flexDirection: "row", alignItems: "center", gap: scaleSize(8), marginBottom: scaleSize(10) }}>
-                <Sun size={scaleSize(14)} color={GOLD} strokeWidth={2} />
-                <Text style={{ fontSize: scaleFont(11), color: GOLD, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: "600" }}>
+                <Sun size={scaleSize(14)} color={c.gold} strokeWidth={2} />
+                <Text style={{ fontSize: scaleFont(11), color: c.gold, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: "600" }}>
                   Why Fast
                 </Text>
               </View>
-              <Text style={{ fontSize: scaleFont(14), color: "rgba(255,255,255,0.75)", lineHeight: scaleFont(22) }}>
+              <Text style={{ fontSize: scaleFont(14), color: c.ink(0.75), lineHeight: scaleFont(22) }}>
                 Fast often, and pray much. Jesus Himself, full of the Spirit, went into the wilderness and
                 fasted forty days before He began His ministry — fasting was part of His rhythm, not a rare
                 event. Make it part of yours too.
@@ -540,7 +534,7 @@ export default function FastingScreen() {
               <Text
                 style={{
                   fontSize: scaleFont(11),
-                  color: "rgba(212,175,55,0.6)",
+                  color: c.goldA(0.6),
                   marginTop: scaleSize(10),
                   fontStyle: "italic",
                 }}
@@ -552,15 +546,15 @@ export default function FastingScreen() {
             <Text style={sectionLabelStyle}>Set Your Rhythm</Text>
             <View
               style={{
-                backgroundColor: PANEL,
+                backgroundColor: c.bg,
                 borderRadius: scaleSize(16),
                 padding: scaleSize(16),
                 borderWidth: 1,
-                borderColor: "rgba(255,255,255,0.05)",
+                borderColor: c.ink(0.05),
                 marginBottom: scaleSize(20),
               }}
             >
-              <Text style={{ fontSize: scaleFont(12), color: "rgba(255,255,255,0.5)", marginBottom: scaleSize(12) }}>
+              <Text style={{ fontSize: scaleFont(12), color: c.ink(0.5), marginBottom: scaleSize(12) }}>
                 Pick the days you plan to fast each week, or fast daily. We'll remind you at the time you choose below.
               </Text>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: scaleSize(8), marginBottom: scaleSize(14) }}>
@@ -577,11 +571,11 @@ export default function FastingScreen() {
                         borderRadius: scaleSize(20),
                         alignItems: "center",
                         justifyContent: "center",
-                        backgroundColor: selected ? GOLD : "rgba(255,255,255,0.06)",
+                        backgroundColor: selected ? c.gold : c.ink(0.06),
                         opacity: fast.dailyFast ? 0.35 : 1,
                       }}
                     >
-                      <Text style={{ fontSize: scaleFont(11), fontWeight: "700", color: selected ? "#120a22" : "rgba(255,255,255,0.5)" }}>
+                      <Text style={{ fontSize: scaleFont(11), fontWeight: "700", color: selected ? c.bg : c.ink(0.5) }}>
                         {day[0]}
                       </Text>
                     </TouchableOpacity>
@@ -589,18 +583,18 @@ export default function FastingScreen() {
                 })}
               </View>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                <Text style={{ fontSize: scaleFont(13), color: "#fff", fontWeight: "600" }}>Fast daily</Text>
+                <Text style={{ fontSize: scaleFont(13), color: c.text, fontWeight: "600" }}>Fast daily</Text>
                 <Switch
                   value={fast.dailyFast}
                   onValueChange={toggleDaily}
-                  trackColor={{ false: "rgba(255,255,255,0.1)", true: "rgba(212,175,55,0.4)" }}
-                  thumbColor={fast.dailyFast ? GOLD : "#888"}
+                  trackColor={{ false: c.ink(0.1), true: c.goldA(0.4) }}
+                  thumbColor={fast.dailyFast ? c.gold : c.textMuted}
                 />
               </View>
 
-              <View style={{ height: 1, backgroundColor: "rgba(255,255,255,0.06)", marginTop: scaleSize(14), marginBottom: scaleSize(14) }} />
+              <View style={{ height: 1, backgroundColor: c.wash(0.06), marginTop: scaleSize(14), marginBottom: scaleSize(14) }} />
 
-              <Text style={{ fontSize: scaleFont(13), color: "#fff", fontWeight: "600", marginBottom: scaleSize(10) }}>
+              <Text style={{ fontSize: scaleFont(13), color: c.text, fontWeight: "600", marginBottom: scaleSize(10) }}>
                 Reminder time
               </Text>
               <View style={{ flexDirection: "row", gap: scaleSize(10) }}>
@@ -612,14 +606,14 @@ export default function FastingScreen() {
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    backgroundColor: CARD,
+                    backgroundColor: c.bg,
                     borderRadius: scaleSize(12),
                     paddingHorizontal: scaleSize(14),
                     paddingVertical: scaleSize(12),
                   }}
                 >
-                  <Text style={{ fontSize: scaleFont(14), color: GOLD, fontWeight: "700" }}>{reminderHour12}:00</Text>
-                  <ChevronDown size={scaleSize(14)} color="rgba(255,255,255,0.4)" strokeWidth={2} />
+                  <Text style={{ fontSize: scaleFont(14), color: c.gold, fontWeight: "700" }}>{reminderHour12}:00</Text>
+                  <ChevronDown size={scaleSize(14)} color={c.ink(0.4)} strokeWidth={2} />
                 </TouchableOpacity>
 
                 {/* AM/PM dropdown */}
@@ -630,17 +624,17 @@ export default function FastingScreen() {
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    backgroundColor: CARD,
+                    backgroundColor: c.bg,
                     borderRadius: scaleSize(12),
                     paddingHorizontal: scaleSize(14),
                     paddingVertical: scaleSize(12),
                   }}
                 >
-                  <Text style={{ fontSize: scaleFont(14), color: GOLD, fontWeight: "700" }}>{reminderPeriod}</Text>
-                  <ChevronDown size={scaleSize(14)} color="rgba(255,255,255,0.4)" strokeWidth={2} />
+                  <Text style={{ fontSize: scaleFont(14), color: c.gold, fontWeight: "700" }}>{reminderPeriod}</Text>
+                  <ChevronDown size={scaleSize(14)} color={c.ink(0.4)} strokeWidth={2} />
                 </TouchableOpacity>
               </View>
-              <Text style={{ fontSize: scaleFont(11), color: "rgba(255,255,255,0.3)", marginTop: scaleSize(8) }}>
+              <Text style={{ fontSize: scaleFont(11), color: c.ink(0.3), marginTop: scaleSize(8) }}>
                 We'll notify you at {reminderHour12}:00 {reminderPeriod} on{" "}
                 {fast.dailyFast ? "every day you've set to fast daily" : "each selected day"}.
               </Text>
@@ -655,10 +649,10 @@ export default function FastingScreen() {
                   <View
                     key={plan.id}
                     style={{
-                      backgroundColor: expanded ? CARD_SELECTED : CARD,
+                      backgroundColor: expanded ? c.surface : c.bg,
                       borderRadius: scaleSize(14),
                       borderWidth: 1,
-                      borderColor: expanded ? "rgba(212,175,55,0.25)" : "rgba(255,255,255,0.05)",
+                      borderColor: expanded ? c.goldA(0.25) : c.ink(0.05),
                       overflow: "hidden",
                     }}
                   >
@@ -672,33 +666,33 @@ export default function FastingScreen() {
                           width: scaleSize(38),
                           height: scaleSize(38),
                           borderRadius: scaleSize(10),
-                          backgroundColor: "rgba(212,175,55,0.1)",
+                          backgroundColor: c.goldA(0.1),
                           alignItems: "center",
                           justifyContent: "center",
                           marginRight: scaleSize(12),
                         }}
                       >
-                        <Icon size={scaleSize(17)} color={GOLD} strokeWidth={2} />
+                        <Icon size={scaleSize(17)} color={c.gold} strokeWidth={2} />
                       </View>
                       <View style={{ flex: 1 }}>
                         <View style={{ flexDirection: "row", alignItems: "center", gap: scaleSize(6) }}>
-                          <Text style={{ fontSize: scaleFont(13), fontWeight: "600", color: "#fff" }}>{plan.label}</Text>
+                          <Text style={{ fontSize: scaleFont(13), fontWeight: "600", color: c.text }}>{plan.label}</Text>
                           {plan.intensity === "intense" && <AlertTriangle size={scaleSize(12)} color="#F59E0B" strokeWidth={2} />}
                         </View>
-                        <Text style={{ fontSize: scaleFont(11), color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{plan.desc}</Text>
+                        <Text style={{ fontSize: scaleFont(11), color: c.ink(0.4), marginTop: 2 }}>{plan.desc}</Text>
                       </View>
                       <Animated.View style={{ transform: [{ rotate: expanded ? "180deg" : "0deg" }] }}>
-                        <ChevronDown size={scaleSize(16)} color="rgba(255,255,255,0.4)" strokeWidth={2} />
+                        <ChevronDown size={scaleSize(16)} color={c.ink(0.4)} strokeWidth={2} />
                       </Animated.View>
                     </TouchableOpacity>
 
                     {expanded && (
                       <View style={{ paddingHorizontal: scaleSize(14), paddingBottom: scaleSize(14) }}>
-                        <View style={{ height: 1, backgroundColor: "rgba(255,255,255,0.06)", marginBottom: scaleSize(12) }} />
+                        <View style={{ height: 1, backgroundColor: c.wash(0.06), marginBottom: scaleSize(12) }} />
                         {plan.benefits.map((b, i) => (
                           <View key={i} style={{ flexDirection: "row", marginBottom: scaleSize(6) }}>
-                            <Text style={{ color: GOLD, marginRight: scaleSize(6), fontSize: scaleFont(12) }}>·</Text>
-                            <Text style={{ flex: 1, fontSize: scaleFont(12), color: "rgba(255,255,255,0.6)", lineHeight: scaleFont(18) }}>
+                            <Text style={{ color: c.gold, marginRight: scaleSize(6), fontSize: scaleFont(12) }}>·</Text>
+                            <Text style={{ flex: 1, fontSize: scaleFont(12), color: c.ink(0.6), lineHeight: scaleFont(18) }}>
                               {b}
                             </Text>
                           </View>
@@ -706,7 +700,7 @@ export default function FastingScreen() {
                         <Text
                           style={{
                             fontSize: scaleFont(11),
-                            color: "rgba(212,175,55,0.6)",
+                            color: c.goldA(0.6),
                             fontStyle: "italic",
                             marginTop: scaleSize(8),
                             marginBottom: scaleSize(14),
@@ -722,13 +716,13 @@ export default function FastingScreen() {
                             alignItems: "center",
                             justifyContent: "center",
                             gap: scaleSize(8),
-                            backgroundColor: PURPLE,
+                            backgroundColor: c.violet,
                             borderRadius: scaleSize(12),
                             paddingVertical: scaleSize(12),
                           }}
                         >
-                          <Play size={scaleSize(14)} color="#fff" strokeWidth={2} fill="#fff" />
-                          <Text style={{ color: "#fff", fontSize: scaleFont(13), fontWeight: "700" }}>Start Fast</Text>
+                          <Play size={scaleSize(14)} color={c.text} strokeWidth={2} fill={c.text} />
+                          <Text style={{ color: c.text, fontSize: scaleFont(13), fontWeight: "700" }}>Start Fast</Text>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -745,25 +739,25 @@ export default function FastingScreen() {
       <Navbar />
 
       <Modal visible={sheetPlan !== null} transparent animationType="slide" onRequestClose={() => setSheetPlan(null)}>
-        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.5)" }}>
+        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: c.overlay }}>
           <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setSheetPlan(null)} />
           <View
             style={{
-              backgroundColor: PANEL,
+              backgroundColor: c.bg,
               borderTopLeftRadius: scaleSize(20),
               borderTopRightRadius: scaleSize(20),
               padding: scaleSize(20),
               paddingBottom: scaleSize(20) + insets.bottom,
               borderWidth: 1,
-              borderColor: "rgba(212,175,55,0.15)",
+              borderColor: c.goldA(0.15),
             }}
           >
             {sheetPlan && (
               <>
-                <Text style={{ fontSize: scaleFont(18), fontWeight: "700", color: "#fff", marginBottom: scaleSize(4) }}>
+                <Text style={{ fontSize: scaleFont(18), fontWeight: "700", color: c.text, marginBottom: scaleSize(4) }}>
                   {planById(sheetPlan).label}
                 </Text>
-                <Text style={{ fontSize: scaleFont(12), color: "rgba(255,255,255,0.4)", marginBottom: scaleSize(18) }}>
+                <Text style={{ fontSize: scaleFont(12), color: c.ink(0.4), marginBottom: scaleSize(18) }}>
                   Pick when you'll start and when you plan to end.
                 </Text>
 
@@ -771,7 +765,7 @@ export default function FastingScreen() {
                 <TimeRow label="End time" value={tempEnd} onPress={() => setPickerField("end")} />
 
                 {showsDryToggleFor(sheetPlan) && sheetPlan !== "dry" && (
-                  <Text style={{ fontSize: scaleFont(11), color: "rgba(255,255,255,0.3)", marginTop: scaleSize(4), marginBottom: scaleSize(16) }}>
+                  <Text style={{ fontSize: scaleFont(11), color: c.ink(0.3), marginTop: scaleSize(4), marginBottom: scaleSize(16) }}>
                     Want a stricter version? Choose the Dry Fast plan above instead of toggling mid-fast.
                   </Text>
                 )}
@@ -791,7 +785,7 @@ export default function FastingScreen() {
                     }}
                   >
                     <AlertTriangle size={scaleSize(16)} color="#F59E0B" strokeWidth={2} />
-                    <Text style={{ flex: 1, fontSize: scaleFont(12), color: "rgba(255,255,255,0.7)", lineHeight: scaleFont(18) }}>
+                    <Text style={{ flex: 1, fontSize: scaleFont(12), color: c.ink(0.7), lineHeight: scaleFont(18) }}>
                       No food or water. Keep this short (a few hours, not days), stop immediately if you feel
                       unwell, and skip this entirely if pregnant, nursing, diabetic, or on medication that
                       requires food or water.
@@ -807,14 +801,14 @@ export default function FastingScreen() {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: scaleSize(8),
-                    backgroundColor: PURPLE,
+                    backgroundColor: c.violet,
                     borderRadius: scaleSize(14),
                     paddingVertical: scaleSize(16),
                     marginTop: scaleSize(4),
                   }}
                 >
-                  <Play size={scaleSize(16)} color="#fff" strokeWidth={2} fill="#fff" />
-                  <Text style={{ color: "#fff", fontSize: scaleFont(15), fontWeight: "700" }}>Start Fasting</Text>
+                  <Play size={scaleSize(16)} color={c.text} strokeWidth={2} fill={c.text} />
+                  <Text style={{ color: c.text, fontSize: scaleFont(15), fontWeight: "700" }}>Start Fasting</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -825,19 +819,19 @@ export default function FastingScreen() {
       {/* Hour picker */}
       <Modal visible={hourDropdownOpen} transparent animationType="fade" onRequestClose={() => setHourDropdownOpen(false)}>
         <TouchableOpacity
-          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center" }}
+          style={{ flex: 1, backgroundColor: c.overlay, justifyContent: "center", alignItems: "center" }}
           activeOpacity={1}
           onPress={() => setHourDropdownOpen(false)}
         >
           <View
             style={{
-              backgroundColor: PANEL,
+              backgroundColor: c.bg,
               borderRadius: scaleSize(16),
               padding: scaleSize(12),
               width: scaleSize(160),
               maxHeight: scaleSize(320),
               borderWidth: 1,
-              borderColor: "rgba(212,175,55,0.2)",
+              borderColor: c.goldA(0.2),
             }}
           >
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -852,10 +846,10 @@ export default function FastingScreen() {
                     paddingVertical: scaleSize(10),
                     paddingHorizontal: scaleSize(12),
                     borderRadius: scaleSize(8),
-                    backgroundColor: h === reminderHour12 ? "rgba(212,175,55,0.15)" : "transparent",
+                    backgroundColor: h === reminderHour12 ? c.goldA(0.15) : "transparent",
                   }}
                 >
-                  <Text style={{ fontSize: scaleFont(14), color: h === reminderHour12 ? GOLD : "#fff", textAlign: "center" }}>
+                  <Text style={{ fontSize: scaleFont(14), color: h === reminderHour12 ? c.gold : c.text, textAlign: "center" }}>
                     {h}:00
                   </Text>
                 </TouchableOpacity>
@@ -868,18 +862,18 @@ export default function FastingScreen() {
       {/* AM/PM picker */}
       <Modal visible={periodDropdownOpen} transparent animationType="fade" onRequestClose={() => setPeriodDropdownOpen(false)}>
         <TouchableOpacity
-          style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", alignItems: "center" }}
+          style={{ flex: 1, backgroundColor: c.overlay, justifyContent: "center", alignItems: "center" }}
           activeOpacity={1}
           onPress={() => setPeriodDropdownOpen(false)}
         >
           <View
             style={{
-              backgroundColor: PANEL,
+              backgroundColor: c.bg,
               borderRadius: scaleSize(16),
               padding: scaleSize(12),
               width: scaleSize(120),
               borderWidth: 1,
-              borderColor: "rgba(212,175,55,0.2)",
+              borderColor: c.goldA(0.2),
             }}
           >
             {(["AM", "PM"] as const).map((p) => (
@@ -893,10 +887,10 @@ export default function FastingScreen() {
                   paddingVertical: scaleSize(10),
                   paddingHorizontal: scaleSize(12),
                   borderRadius: scaleSize(8),
-                  backgroundColor: p === reminderPeriod ? "rgba(212,175,55,0.15)" : "transparent",
+                  backgroundColor: p === reminderPeriod ? c.goldA(0.15) : "transparent",
                 }}
               >
-                <Text style={{ fontSize: scaleFont(14), color: p === reminderPeriod ? GOLD : "#fff", textAlign: "center" }}>
+                <Text style={{ fontSize: scaleFont(14), color: p === reminderPeriod ? c.gold : c.text, textAlign: "center" }}>
                   {p}
                 </Text>
               </TouchableOpacity>
@@ -928,7 +922,7 @@ export default function FastingScreen() {
 
 const sectionLabelStyle = {
   fontSize: scaleFont(10),
-  color: "rgba(255,255,255,0.25)",
+  color: c.ink(0.25),
   letterSpacing: 2,
   textTransform: "uppercase" as const,
   marginBottom: scaleSize(10),
@@ -943,7 +937,7 @@ function TimeRow({ label, value, onPress }: { label: string; value: Date; onPres
         flexDirection: "row",
         alignItems: "center",
         justifyContent: "space-between",
-        backgroundColor: CARD,
+        backgroundColor: c.bg,
         borderRadius: scaleSize(12),
         paddingHorizontal: scaleSize(14),
         paddingVertical: scaleSize(12),
@@ -951,10 +945,10 @@ function TimeRow({ label, value, onPress }: { label: string; value: Date; onPres
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: scaleSize(8) }}>
-        <Clock size={scaleSize(14)} color="rgba(255,255,255,0.4)" strokeWidth={2} />
-        <Text style={{ fontSize: scaleFont(13), color: "rgba(255,255,255,0.6)" }}>{label}</Text>
+        <Clock size={scaleSize(14)} color={c.ink(0.4)} strokeWidth={2} />
+        <Text style={{ fontSize: scaleFont(13), color: c.ink(0.6) }}>{label}</Text>
       </View>
-      <Text style={{ fontSize: scaleFont(14), color: GOLD, fontWeight: "700" }}>
+      <Text style={{ fontSize: scaleFont(14), color: c.gold, fontWeight: "700" }}>
         {value.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
       </Text>
     </TouchableOpacity>
@@ -974,8 +968,8 @@ function HealthNote() {
         borderColor: "rgba(239,68,68,0.2)",
       }}
     >
-      <Heart size={scaleSize(16)} color="#F87171" strokeWidth={2} />
-      <Text style={{ flex: 1, fontSize: scaleFont(12), color: "rgba(255,255,255,0.6)", lineHeight: scaleFont(18) }}>
+      <Heart size={scaleSize(16)} color={c.danger} strokeWidth={2} />
+      <Text style={{ flex: 1, fontSize: scaleFont(12), color: c.ink(0.6), lineHeight: scaleFont(18) }}>
         Fast with wisdom, not just zeal. Break every fast gently — water first, then light food — rather than
         a heavy meal. Stop early if you feel faint, dizzy, or unwell. If you're pregnant, nursing, managing
         diabetes, or on medication, talk to a doctor before longer or drier fasts.

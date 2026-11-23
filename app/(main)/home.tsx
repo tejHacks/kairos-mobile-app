@@ -24,11 +24,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Navbar from "../../components/Navbar";
 import { PrayerTimer } from "../../components/PrayerTimer";
 import { SacredHourDisplay } from "../../components/SacredHourDisplay";
-import { COLORS } from "../../constants/appConstants";
 import { usePrayerState, ViewState } from "../../hooks/usePrayerState";
 import { usePrayerTimes } from "../../hooks/usePrayerTimes";
 import { scaleFont, scaleSize, verticalScale } from "../../hooks/useResponsive";
 import TopBar from "../../components/TopBar";
+
+import { c, themed } from "@/constants/theme";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -305,7 +306,7 @@ export default function Home() {
 
   return (
     <LinearGradient
-      colors={[COLORS.background, COLORS.secondary, COLORS.background]}
+      colors={[c.bg, c.bg]}
       style={{ flex: 1 }}
     >
       {/* // Remove appTitle Text, add above ScrollView: */}
@@ -515,17 +516,17 @@ export default function Home() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   appTitle: {
     fontSize: scaleFont(18),
-    color: COLORS.primary,
+    color: c.gold,
     letterSpacing: 5,
     fontWeight: "700",
     marginBottom: scaleSize(32),
   },
   time: {
     fontSize: scaleFont(42),
-    color: COLORS.primary,
+    color: c.gold,
     fontWeight: "200",
     letterSpacing: 2,
     marginBottom: scaleSize(8),
@@ -533,22 +534,22 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: scaleFont(22),
     fontWeight: "400",
-    color: COLORS.text,
+    color: c.text,
     marginBottom: scaleSize(24),
     textAlign: "center",
     letterSpacing: 0.5,
   },
   card: {
-    backgroundColor: "rgba(255,255,255,0.07)",
+    backgroundColor: c.wash(0.07),
     padding: scaleSize(22),
     borderRadius: scaleSize(18),
     marginVertical: scaleSize(12),
     alignSelf: "center",
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: c.ink(0.25),
   },
   scriptureText: {
-    color: COLORS.text,
+    color: c.text,
     fontSize: scaleFont(15),
     lineHeight: scaleFont(24),
     textAlign: "center",
@@ -557,12 +558,12 @@ const styles = StyleSheet.create({
   divider: {
     width: scaleSize(36),
     height: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: c.gold,
     alignSelf: "center",
     marginVertical: scaleSize(10),
   },
   scriptureRef: {
-    color: COLORS.primary,
+    color: c.gold,
     fontSize: scaleFont(11),
     textAlign: "center",
     letterSpacing: 1,
@@ -572,34 +573,34 @@ const styles = StyleSheet.create({
   nextPrayerCard: {
     width: width * 0.9,
     maxWidth: 440,
-    backgroundColor: "rgba(212,175,55,0.07)",
+    backgroundColor: c.goldA(0.07),
     borderRadius: scaleSize(18),
     padding: scaleSize(20),
     borderWidth: 1,
-    borderColor: "rgba(212,175,55,0.2)",
+    borderColor: c.goldA(0.2),
     alignItems: "center",
     marginVertical: scaleSize(12),
   },
   nextPrayerCardActive: {
-    backgroundColor: "rgba(212,175,55,0.14)",
-    borderColor: "rgba(212,175,55,0.5)",
+    backgroundColor: c.goldA(0.14),
+    borderColor: c.goldA(0.5),
   },
   nowBadge: {
-    backgroundColor: "#D4AF37",
+    backgroundColor: c.gold,
     borderRadius: scaleSize(20),
     paddingHorizontal: scaleSize(12),
     paddingVertical: scaleSize(3),
     marginBottom: scaleSize(8),
   },
   nowBadgeText: {
-    color: "#1a0f2e",
+    color: c.bg,
     fontSize: scaleFont(10),
     fontWeight: "800",
     letterSpacing: 2,
   },
   nextPrayerLabel: {
     fontSize: scaleFont(10),
-    color: "rgba(212,175,55,0.6)",
+    color: c.goldA(0.6),
     letterSpacing: 2,
     textTransform: "uppercase",
     marginBottom: scaleSize(6),
@@ -607,40 +608,40 @@ const styles = StyleSheet.create({
   nextPrayerName: {
     fontSize: scaleFont(20),
     fontWeight: "600",
-    color: "#fff",
+    color: c.text,
     letterSpacing: 0.3,
     marginBottom: scaleSize(4),
   },
   nextPrayerTime: {
     fontSize: scaleFont(14),
-    color: "#D4AF37",
+    color: c.gold,
     fontWeight: "600",
     letterSpacing: 0.5,
   },
   nextPrayerCountdown: {
     fontSize: scaleFont(12),
-    color: "rgba(212,175,55,0.55)",
+    color: c.goldA(0.55),
     fontWeight: "400",
   },
   nextPrayerSubtitle: {
     fontSize: scaleFont(11),
-    color: "rgba(255,255,255,0.35)",
+    color: c.ink(0.35),
     marginTop: scaleSize(4),
     textAlign: "center",
   },
   noTimesCard: {
     width: width * 0.9,
     maxWidth: 440,
-    backgroundColor: "rgba(255,255,255,0.04)",
+    backgroundColor: c.wash(0.04),
     borderRadius: scaleSize(18),
     padding: scaleSize(20),
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: c.ink(0.08),
     alignItems: "center",
     marginVertical: scaleSize(12),
   },
   noTimesText: {
-    color: "rgba(255,255,255,0.3)",
+    color: c.ink(0.3),
     fontSize: scaleFont(13),
     textAlign: "center",
     lineHeight: scaleFont(20),
@@ -656,7 +657,7 @@ const styles = StyleSheet.create({
     marginBottom: scaleSize(16),
     minWidth: scaleSize(240),
     borderWidth: 2,
-    borderColor: COLORS.primary,
+    borderColor: c.gold,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -664,26 +665,26 @@ const styles = StyleSheet.create({
   },
   startIcon: { fontSize: scaleFont(16) },
   startText: {
-    color: COLORS.primary,
+    color: c.gold,
     fontWeight: "700",
     fontSize: scaleFont(14),
     letterSpacing: 2,
   },
   footerText: {
-    color: "rgba(255,255,255,0.25)",
+    color: c.ink(0.25),
     fontSize: scaleFont(10),
     marginTop: scaleSize(8),
     letterSpacing: 2,
     fontStyle: "italic",
   },
   back: {
-    color: COLORS.primary,
+    color: c.gold,
     fontSize: scaleFont(15),
     marginVertical: scaleSize(12),
     fontWeight: "600",
   },
   sectionTitle: {
-    color: COLORS.text,
+    color: c.text,
     fontSize: scaleFont(22),
     fontWeight: "400",
     marginBottom: scaleSize(24),
@@ -691,7 +692,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   option: {
-    backgroundColor: "rgba(255,255,255,0.07)",
+    backgroundColor: c.wash(0.07),
     padding: scaleSize(16),
     borderRadius: scaleSize(16),
     width: width * 0.88,
@@ -699,40 +700,40 @@ const styles = StyleSheet.create({
     marginVertical: scaleSize(6),
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: c.ink(0.08),
   },
   optionSelected: {
-    backgroundColor: "rgba(212,175,55,0.12)",
-    borderColor: COLORS.primary,
+    backgroundColor: c.goldA(0.12),
+    borderColor: c.gold,
   },
   optionText: {
-    color: COLORS.text,
+    color: c.text,
     fontSize: scaleFont(15),
     textAlign: "center",
   },
   optionTextSelected: {
-    color: COLORS.primary,
+    color: c.gold,
     fontWeight: "700",
   },
   modal: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: c.bg,
     justifyContent: "center",
     alignItems: "center",
     padding: scaleSize(36),
   },
   modalTitle: {
     fontSize: scaleFont(26),
-    color: COLORS.text,
+    color: c.text,
     marginBottom: scaleSize(20),
     textAlign: "center",
     fontWeight: "400",
   },
   modalText: {
-    color: "rgba(255,255,255,0.5)",
+    color: c.ink(0.5),
     fontSize: scaleFont(15),
     textAlign: "center",
     marginBottom: scaleSize(40),
     lineHeight: scaleFont(24),
   },
-});
+}));

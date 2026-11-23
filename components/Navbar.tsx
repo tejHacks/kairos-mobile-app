@@ -4,6 +4,8 @@ import React from "react";
 import { Dimensions, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { c } from "@/constants/theme";
+
 const { width } = Dimensions.get("window");
 
 const isSmallDevice = width < 375;
@@ -14,8 +16,6 @@ const scale = (size: number) => {
   if (isSmallDevice) return size * 0.9;
   return size;
 };
-
-const GOLD = "#D4AF37";
 
 export default function Navbar() {
   const router = useRouter();
@@ -42,9 +42,9 @@ export default function Navbar() {
         bottom: 0,
         width,
         paddingBottom: bottomPadding,
-        backgroundColor: "#1a0f2e",
+        backgroundColor: c.bg,
         borderTopWidth: 1,
-        borderTopColor: "rgba(212, 175, 55, 0.2)",
+        borderTopColor: c.goldA(0.2),
       }}
     >
       <View
@@ -59,7 +59,7 @@ export default function Navbar() {
         {tabs.map(({ label, icon: Icon, route, isMain }) => {
           const isActive = pathname === route;
 
-          // ALTAR — CENTER, RAISED, GLOWING GOLD
+          // ALTAR — CENTER, RAISED, GLOWING c.gold
           if (isMain) {
             return (
               <TouchableOpacity
@@ -78,11 +78,11 @@ export default function Navbar() {
                     width: scale(80),
                     height: scale(80),
                     borderRadius: scale(40),
-                    backgroundColor: "rgba(212, 175, 55, 0.3)",
+                    backgroundColor: c.goldA(0.3),
                     justifyContent: "center",
                     alignItems: "center",
                     position: "absolute",
-                    shadowColor: GOLD,
+                    shadowColor: c.gold,
                     shadowOpacity: 0.8,
                     shadowRadius: 20,
                     shadowOffset: { width: 0, height: 0 },
@@ -90,17 +90,17 @@ export default function Navbar() {
                   }}
                 />
 
-                {/* GOLD RING */}
+                {/* c.gold RING */}
                 <View
                   style={{
                     width: scale(70),
                     height: scale(70),
                     borderRadius: scale(35),
-                    backgroundColor: "#1a0f2e",
+                    backgroundColor: c.bg,
                     justifyContent: "center",
                     alignItems: "center",
                     borderWidth: 3,
-                    borderColor: GOLD,
+                    borderColor: c.gold,
                   }}
                 >
                   {/* PURPLE INNER CORE */}
@@ -109,12 +109,12 @@ export default function Navbar() {
                       width: scale(58),
                       height: scale(58),
                       borderRadius: scale(29),
-                      backgroundColor: "#4C1D95",
+                      backgroundColor: c.violet,
                       justifyContent: "center",
                       alignItems: "center",
                     }}
                   >
-                    <Icon size={scale(28)} color={GOLD} strokeWidth={2.5} />
+                    <Icon size={scale(28)} color={c.gold} strokeWidth={2.5} />
                   </View>
                 </View>
               </TouchableOpacity>
@@ -131,13 +131,13 @@ export default function Navbar() {
             >
               <Icon
                 size={22}
-                color={isActive ? GOLD : "rgba(255,255,255,0.5)"}
+                color={isActive ? c.gold : c.ink(0.5)}
                 strokeWidth={isActive ? 2.5 : 2}
               />
               <Text
                 style={{
                   fontSize: 10,
-                  color: isActive ? GOLD : "rgba(255,255,255,0.5)",
+                  color: isActive ? c.gold : c.ink(0.5),
                   fontWeight: isActive ? "700" : "400",
                   letterSpacing: 0.5,
                 }}

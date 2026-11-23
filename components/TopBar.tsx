@@ -5,7 +5,7 @@ import { Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scaleFont, scaleSize } from "../hooks/useResponsive";
 
-const GOLD = "#D4AF37";
+import { c } from "@/constants/theme";
 
 interface TopBarProps {
   title: string;
@@ -26,9 +26,9 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
         paddingTop: insets.top + scaleSize(8),
         paddingHorizontal: scaleSize(16), // was 20 — tightened
         paddingBottom: scaleSize(12), // was 20 — tightened
-        backgroundColor: "#1a0f2e",
+        backgroundColor: c.bg,
         borderBottomWidth: 1,
-        borderBottomColor: "rgba(212,175,55,0.12)",
+        borderBottomColor: c.goldA(0.12),
       }}
     >
       {/* Title + icons — same row, icons pushed right */}
@@ -44,7 +44,7 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
           style={{
             fontSize: scaleFont(20),
             fontWeight: "700",
-            color: "#fff",
+            color: c.text,
             letterSpacing: 0.4,
           }}
         >
@@ -66,12 +66,12 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
               width: scaleSize(36), // was 34 — bumped up
               height: scaleSize(36), // was 34 — bumped up
               borderRadius: scaleSize(18),
-              backgroundColor: "rgba(212,175,55,0.08)",
+              backgroundColor: c.goldA(0.08),
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Info size={scaleSize(18)} color={GOLD} strokeWidth={1.8} />
+            <Info size={scaleSize(18)} color={c.gold} strokeWidth={1.8} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -81,12 +81,12 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
               width: scaleSize(36), // was 34 — bumped up
               height: scaleSize(36), // was 34 — bumped up
               borderRadius: scaleSize(18),
-              backgroundColor: "rgba(212,175,55,0.08)",
+              backgroundColor: c.goldA(0.08),
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Settings2 size={scaleSize(18)} color={GOLD} strokeWidth={1.8} />
+            <Settings2 size={scaleSize(18)} color={c.gold} strokeWidth={1.8} />
           </TouchableOpacity>
         </View>
       </View>
@@ -96,7 +96,7 @@ export default function TopBar({ title, subtitle }: TopBarProps) {
         <Text
           style={{
             fontSize: scaleFont(8), // was 11 — reduced
-            color: "rgba(255,255,255,0.35)",
+            color: c.ink(0.35),
             letterSpacing: 2,
             marginTop: scaleSize(4), // was 5 — tightened
             textTransform: "uppercase",

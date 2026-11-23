@@ -1,10 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
-import { Platform, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import Navbar from "../../components/Navbar";
 import TopBar from "../../components/TopBar";
-import { COLORS } from "../../constants/appConstants";
 import { rescheduleSavedPrayerNotifications } from "../../hooks/usePrayerTimes";
 import { scaleFont, scaleSize, verticalScale } from "../../hooks/useResponsive";
 import {
@@ -12,6 +11,8 @@ import {
   getFastingSchedule,
   scheduleFastingReminders,
 } from "../../hooks/useFastingReminders";
+
+import { c, getThemeChoice, setThemeChoice, themed, type ThemeChoice } from "@/constants/theme";
 
 const STORAGE_KEY = "@kairos/settings";
 
@@ -76,20 +77,25 @@ export default function SettingsScreen() {
 
   if (loading) {
     return (
-      <LinearGradient colors={["#0c0514", "#150926", "#271b4a"]} style={styles.loadingContainer}>
+      <LinearGradient colors={[c.bg, c.bg]} style={styles.loadingContainer}>
         <Text style={styles.loadingText}>Loading Settings...</Text>
       </LinearGradient>
     );
   }
 
   return (
-    <LinearGradient colors={["#0c0514", "#150926", "#271b4a"]} style={{ flex: 1 }}>
+    <LinearGradient colors={[c.bg, c.bg]} style={{ flex: 1 }}>
       <TopBar title="Settings" subtitle="Manage your preferences" />
 
       <ScrollView
         contentContainerStyle={[styles.container, { paddingBottom: verticalScale(120) }]}
         showsVerticalScrollIndicator={false}
       >
+        {/* ── Appearance ── */}
+        <Section title="Appearance" desc="Kairos follows your phone by default. Pick Light or Dark to keep one look.">
+          <AppearancePicker />
+        </Section>
+
         {/* ── Prayer Reminders ── */}
         <Section title="Prayer Reminders" desc="Turn on reminders for your selected prayer times.">
           <OptionRow
@@ -132,9 +138,9 @@ export default function SettingsScreen() {
 
         {/* ── Footer ── */}
         <View style={styles.footerCard}>
-          <Text style={styles.footerTitle}>More coming soon</Text>
+          <Text style={styles.footerTitle}>Evening, morning and noon</Text>
           <Text style={styles.footerText}>
-            Themes, deeper personalization, and prayer reminder upgrades are on the way. Stay faithful.
+            “Evening, and morning, and at noon, will I pray, and cry aloud: and he shall hear my voice.” Psalm 55:17
           </Text>
         </View>
       </ScrollView>
@@ -163,36 +169,69 @@ function OptionRow({ label, value, onChange }: { label: string; value: boolean; 
       <Switch
         value={value}
         onValueChange={onChange}
-        thumbColor={Platform.OS === "android" ? COLORS.primary : undefined}
-        trackColor={{ false: "#555", true: COLORS.primary }}
+        thumbColor={Platform.OS === "android" ? c.gold : undefined}
+        trackColor={{ false: c.ink(0.25), true: c.gold }}
       />
+    </View>
+  );
+}
+
+const APPEARANCE: { id: ThemeChoice; label: string; icon: string }[] = [
+  { id: "system", label: "Match phone", icon: "◐" },
+  { id: "light", label: "Light", icon: "☀" },
+  { id: "dark", label: "Dark", icon: "☾" },
+];
+
+function AppearancePicker() {
+  const [choice, setChoice] = useState<ThemeChoice>(getThemeChoice());
+  return (
+    <View style={styles.segment} accessibilityRole="radiogroup">
+      {APPEARANCE.map((o) => {
+        const on = o.id === choice;
+        return (
+          <TouchableOpacity
+            key={o.id}
+            style={[styles.segmentItem, on && styles.segmentItemOn]}
+            onPress={() => {
+              setChoice(o.id);
+              void setThemeChoice(o.id);
+            }}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: on }}
+            activeOpacity={0.8}
+          >
+            <Text style={[styles.segmentIcon, on && styles.segmentTextOn]}>{o.icon}</Text>
+            <Text style={[styles.segmentText, on && styles.segmentTextOn]}>{o.label}</Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
 
 // ── Styles ──────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  loadingText: { color: COLORS.text, fontSize: scaleFont(16) },
+  loadingText: { color: c.text, fontSize: scaleFont(16) },
   container: { paddingTop: scaleSize(24), paddingHorizontal: scaleSize(24) },
   section: {
-    backgroundColor: "rgba(72,20,111,0.26)",
+    backgroundColor: c.surface,
     borderRadius: scaleSize(20),
     padding: scaleSize(20),
     marginBottom: verticalScale(18),
     borderWidth: 1,
-    borderColor: "rgba(212,175,55,0.18)",
+    borderColor: c.goldA(0.18),
   },
   sectionTitle: {
-    color: COLORS.primary,
+    color: c.gold,
     fontSize: scaleFont(16),
     fontWeight: "700",
     marginBottom: verticalScale(6),
     letterSpacing: 0.3,
   },
   sectionDescription: {
-    color: "rgba(255,255,255,0.55)",
+    color: c.ink(0.55),
     fontSize: scaleFont(13),
     lineHeight: scaleFont(20),
     marginBottom: verticalScale(14),
@@ -201,21 +240,35 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "rgba(255,255,255,0.04)",
+    backgroundColor: c.wash(0.04),
     paddingVertical: verticalScale(14),
     paddingHorizontal: scaleSize(16),
     borderRadius: scaleSize(14),
     marginBottom: verticalScale(10),
   },
-  optionLabel: { color: COLORS.text, fontSize: scaleFont(15), flex: 1, marginRight: scaleSize(12) },
+  optionLabel: { color: c.text, fontSize: scaleFont(15), flex: 1, marginRight: scaleSize(12) },
+  segment: { flexDirection: "row", gap: scaleSize(8) },
+  segmentItem: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: verticalScale(12),
+    borderRadius: scaleSize(14),
+    backgroundColor: c.wash(0.05),
+    borderWidth: 1,
+    borderColor: c.ink(0.08),
+  },
+  segmentItemOn: { backgroundColor: c.gold, borderColor: c.gold },
+  segmentIcon: { fontSize: scaleFont(18), color: c.text, marginBottom: 2 },
+  segmentText: { fontSize: scaleFont(13), fontWeight: "600", color: c.text },
+  segmentTextOn: { color: c.onGold },
   footerCard: {
     padding: scaleSize(20),
     borderRadius: scaleSize(18),
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    backgroundColor: "rgba(255,255,255,0.04)",
+    borderColor: c.ink(0.08),
+    backgroundColor: c.wash(0.04),
     marginBottom: scaleSize(8),
   },
-  footerTitle: { color: COLORS.primary, fontSize: scaleFont(15), fontWeight: "700", marginBottom: verticalScale(6) },
-  footerText: { color: "rgba(255,255,255,0.55)", fontSize: scaleFont(13), lineHeight: scaleFont(20) },
-});
+  footerTitle: { color: c.gold, fontSize: scaleFont(15), fontWeight: "700", marginBottom: verticalScale(6) },
+  footerText: { color: c.ink(0.55), fontSize: scaleFont(13), lineHeight: scaleFont(20) },
+}));

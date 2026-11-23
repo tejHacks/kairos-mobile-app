@@ -147,3 +147,13 @@ export async function scheduleFastingReminders(
     console.error("[Kairos] Failed to schedule fasting reminders:", e);
   }
 }
+
+/** Cancels every scheduled fasting reminder (used when fasting reminders are turned off). */
+export async function cancelFastingReminders(): Promise<void> {
+  try {
+    await cancelExistingReminders();
+    await AsyncStorage.removeItem(NOTIFICATION_IDS_KEY);
+  } catch (e) {
+    console.error("[Kairos] Failed to cancel fasting reminders:", e);
+  }
+}

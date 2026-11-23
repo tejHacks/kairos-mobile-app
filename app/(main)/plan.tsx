@@ -19,6 +19,8 @@ import TopBar from "../../components/TopBar";
 import { scaleFont, scaleSize, verticalScale } from "../../hooks/useResponsive";
 import { PrayerHour, usePrayerTimes } from "../../hooks/usePrayerTimes";
 
+import { c } from "@/constants/theme";
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const format12h = (time24: string): string => {
@@ -66,14 +68,14 @@ const PrayerCard: React.FC<PrayerCardProps> = ({
         style={{
           flexDirection: "row",
           alignItems: "center",
-          backgroundColor: hour.enabled ? "#1e1035" : "#150c28",
+          backgroundColor: hour.enabled ? c.surface : c.bg,
           borderRadius: scaleSize(14),
           padding: scaleSize(14),
           marginBottom: scaleSize(10),
           borderWidth: 1,
           borderColor: hour.enabled
-            ? "rgba(212,175,55,0.2)"
-            : "rgba(255,255,255,0.05)",
+            ? c.goldA(0.2)
+            : c.ink(0.05),
         }}
       >
         {/* Time bubble */}
@@ -83,8 +85,8 @@ const PrayerCard: React.FC<PrayerCardProps> = ({
             paddingVertical: scaleSize(8),
             borderRadius: scaleSize(10),
             backgroundColor: hour.enabled
-              ? "rgba(212,175,55,0.1)"
-              : "rgba(255,255,255,0.04)",
+              ? c.goldA(0.1)
+              : c.ink(0.04),
             marginRight: scaleSize(12),
             alignItems: "center",
             minWidth: scaleSize(58),
@@ -94,7 +96,7 @@ const PrayerCard: React.FC<PrayerCardProps> = ({
             style={{
               fontSize: scaleFont(13),
               fontWeight: "700",
-              color: hour.enabled ? "#D4AF37" : "rgba(255,255,255,0.2)",
+              color: hour.enabled ? c.gold : c.ink(0.2),
               letterSpacing: 0.5,
             }}
           >
@@ -108,7 +110,7 @@ const PrayerCard: React.FC<PrayerCardProps> = ({
             style={{
               fontSize: scaleFont(14),
               fontWeight: "600",
-              color: hour.enabled ? "#FFFFFF" : "rgba(255,255,255,0.35)",
+              color: hour.enabled ? c.text : c.ink(0.35),
               letterSpacing: 0.2,
             }}
           >
@@ -119,8 +121,8 @@ const PrayerCard: React.FC<PrayerCardProps> = ({
               style={{
                 fontSize: scaleFont(11),
                 color: hour.enabled
-                  ? "rgba(255,255,255,0.4)"
-                  : "rgba(255,255,255,0.18)",
+                  ? c.ink(0.4)
+                  : c.ink(0.18),
                 marginTop: 2,
               }}
             >
@@ -146,9 +148,9 @@ const PrayerCard: React.FC<PrayerCardProps> = ({
         <Switch
           value={hour.enabled}
           onValueChange={() => onToggle(hour.id)}
-          trackColor={{ false: "rgba(255,255,255,0.1)", true: "#7C3AED" }}
-          thumbColor={hour.enabled ? "#D4AF37" : "rgba(255,255,255,0.5)"}
-          ios_backgroundColor="rgba(255,255,255,0.1)"
+          trackColor={{ false: c.ink(0.1), true: c.violet }}
+          thumbColor={hour.enabled ? c.gold : c.ink(0.5)}
+          ios_backgroundColor={c.ink(0.1)}
         />
       </TouchableOpacity>
     </Animated.View>
@@ -245,17 +247,17 @@ const PrayerHourModal: React.FC<ModalProps> = ({
       <View
         style={{
           flex: 1,
-          backgroundColor: "rgba(8,4,18,0.92)",
+          backgroundColor: c.overlay,
           justifyContent: "flex-end",
         }}
       >
         <View
           style={{
-            backgroundColor: "#1a0f2e",
+            backgroundColor: c.bg,
             borderTopLeftRadius: scaleSize(24),
             borderTopRightRadius: scaleSize(24),
             borderTopWidth: 1,
-            borderColor: "rgba(212,175,55,0.2)",
+            borderColor: c.goldA(0.2),
             padding: scaleSize(24),
             paddingBottom: scaleSize(48),
           }}
@@ -273,7 +275,7 @@ const PrayerHourModal: React.FC<ModalProps> = ({
               style={{
                 fontSize: scaleFont(18),
                 fontWeight: "700",
-                color: "#D4AF37",
+                color: c.gold,
               }}
             >
               {isNew ? "New Prayer Time" : "Edit Prayer Time"}
@@ -281,7 +283,7 @@ const PrayerHourModal: React.FC<ModalProps> = ({
             <TouchableOpacity onPress={onClose}>
               <Text
                 style={{
-                  color: "rgba(255,255,255,0.35)",
+                  color: c.ink(0.35),
                   fontSize: scaleFont(14),
                 }}
               >
@@ -296,7 +298,7 @@ const PrayerHourModal: React.FC<ModalProps> = ({
             value={name}
             onChangeText={setName}
             placeholder="e.g. Morning Watch"
-            placeholderTextColor="rgba(255,255,255,0.18)"
+            placeholderTextColor={c.ink(0.18)}
             style={s.input}
             autoCapitalize="words"
           />
@@ -307,7 +309,7 @@ const PrayerHourModal: React.FC<ModalProps> = ({
             value={subtitle}
             onChangeText={setSubtitle}
             placeholder="e.g. Intercession for the nation"
-            placeholderTextColor="rgba(255,255,255,0.18)"
+            placeholderTextColor={c.ink(0.18)}
             style={s.input}
           />
 
@@ -334,7 +336,7 @@ const PrayerHourModal: React.FC<ModalProps> = ({
 
             <Text
               style={{
-                color: "#D4AF37",
+                color: c.gold,
                 fontSize: scaleFont(30),
                 fontWeight: "200",
               }}
@@ -363,15 +365,15 @@ const PrayerHourModal: React.FC<ModalProps> = ({
                     paddingVertical: scaleSize(10),
                     borderRadius: scaleSize(8),
                     backgroundColor:
-                      ampm === p ? "#7C3AED" : "rgba(255,255,255,0.06)",
+                      ampm === p ? c.violet : c.ink(0.06),
                     borderWidth: 1,
                     borderColor:
-                      ampm === p ? "#7C3AED" : "rgba(255,255,255,0.1)",
+                      ampm === p ? c.violet : c.ink(0.1),
                   }}
                 >
                   <Text
                     style={{
-                      color: ampm === p ? "#fff" : "rgba(255,255,255,0.35)",
+                      color: ampm === p ? c.text : c.ink(0.35),
                       fontWeight: "700",
                       fontSize: scaleFont(13),
                     }}
@@ -404,14 +406,14 @@ const PrayerHourModal: React.FC<ModalProps> = ({
                   paddingHorizontal: scaleSize(12),
                   paddingVertical: scaleSize(5),
                   borderRadius: scaleSize(20),
-                  backgroundColor: "rgba(212,175,55,0.08)",
+                  backgroundColor: c.goldA(0.08),
                   borderWidth: 1,
-                  borderColor: "rgba(212,175,55,0.18)",
+                  borderColor: c.goldA(0.18),
                 }}
               >
                 <Text
                   style={{
-                    color: "rgba(212,175,55,0.6)",
+                    color: c.goldA(0.6),
                     fontSize: scaleFont(11),
                     fontWeight: "600",
                   }}
@@ -427,18 +429,18 @@ const PrayerHourModal: React.FC<ModalProps> = ({
             onPress={handleSave}
             activeOpacity={0.85}
             style={{
-              backgroundColor: "#7C3AED",
+              backgroundColor: c.violet,
               borderRadius: scaleSize(14),
               padding: scaleSize(16),
               alignItems: "center",
               marginTop: scaleSize(24),
               borderWidth: 1,
-              borderColor: "rgba(212,175,55,0.25)",
+              borderColor: c.goldA(0.25),
             }}
           >
             <Text
               style={{
-                color: "#fff",
+                color: c.text,
                 fontWeight: "700",
                 fontSize: scaleFont(15),
                 letterSpacing: 0.5,
@@ -458,28 +460,28 @@ const PrayerHourModal: React.FC<ModalProps> = ({
 const s = {
   label: {
     fontSize: scaleFont(11),
-    color: "rgba(255,255,255,0.35)",
+    color: c.ink(0.35),
     letterSpacing: 1.2,
     textTransform: "uppercase" as const,
     marginBottom: scaleSize(6),
     marginTop: scaleSize(10),
   },
   input: {
-    backgroundColor: "#120a22",
+    backgroundColor: c.bg,
     borderRadius: scaleSize(10),
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
-    color: "#fff",
+    borderColor: c.ink(0.08),
+    color: c.text,
     fontSize: scaleFont(14),
     paddingHorizontal: scaleSize(14),
     paddingVertical: scaleSize(12),
   },
   timeInput: {
-    backgroundColor: "#120a22",
+    backgroundColor: c.bg,
     borderRadius: scaleSize(12),
     borderWidth: 1,
-    borderColor: "rgba(212,175,55,0.2)",
-    color: "#fff",
+    borderColor: c.goldA(0.2),
+    color: c.text,
     fontSize: scaleFont(32),
     fontWeight: "200" as const,
     letterSpacing: 3,
@@ -531,15 +533,15 @@ export default function PlanScreen() {
       <View
         style={{
           flex: 1,
-          backgroundColor: "#120a22",
+          backgroundColor: c.bg,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <Clock size={scaleSize(26)} color="#D4AF37" strokeWidth={1.5} />
+        <Clock size={scaleSize(26)} color={c.gold} strokeWidth={1.5} />
         <Text
           style={{
-            color: "rgba(255,255,255,0.25)",
+            color: c.ink(0.25),
             marginTop: scaleSize(10),
             fontSize: scaleFont(11),
             letterSpacing: 2,
@@ -552,8 +554,8 @@ export default function PlanScreen() {
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#120a22" }}>
-      <StatusBar barStyle="light-content" backgroundColor="#120a22" />
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
+      <StatusBar barStyle="light-content" backgroundColor={c.bg} />
 
       {/* Shared TopBar handles the notch, About, and Settings now —
           no more duplicate header clutter on this screen. */}
@@ -574,20 +576,20 @@ export default function PlanScreen() {
             alignItems: "center",
             gap: scaleSize(5),
             alignSelf: "flex-start",
-            backgroundColor: "rgba(124,58,237,0.18)",
+            backgroundColor: c.violetA(0.18),
             paddingHorizontal: scaleSize(10),
             paddingVertical: scaleSize(5),
             borderRadius: scaleSize(20),
             borderWidth: 1,
-            borderColor: "rgba(124,58,237,0.3)",
+            borderColor: c.violetA(0.3),
             marginBottom: scaleSize(16),
           }}
         >
-          <Bell size={scaleSize(10)} color="#a78bfa" strokeWidth={2} />
+          <Bell size={scaleSize(10)} color={c.violet} strokeWidth={2} />
           <Text
             style={{
               fontSize: scaleFont(10),
-              color: "#a78bfa",
+              color: c.violet,
               fontWeight: "600",
             }}
           >
@@ -603,10 +605,10 @@ export default function PlanScreen() {
               opacity: 0.5,
             }}
           >
-            <Clock size={scaleSize(32)} color="#D4AF37" strokeWidth={1} />
+            <Clock size={scaleSize(32)} color={c.gold} strokeWidth={1} />
             <Text
               style={{
-                color: "rgba(255,255,255,0.4)",
+                color: c.ink(0.4),
                 marginTop: scaleSize(12),
                 fontSize: scaleFont(13),
                 textAlign: "center",
@@ -637,7 +639,7 @@ export default function PlanScreen() {
             justifyContent: "center",
             gap: scaleSize(8),
             borderWidth: 1,
-            borderColor: "rgba(212,175,55,0.2)",
+            borderColor: c.goldA(0.2),
             borderStyle: "dashed",
             borderRadius: scaleSize(14),
             paddingVertical: scaleSize(14),
@@ -646,13 +648,13 @@ export default function PlanScreen() {
         >
           <Plus
             size={scaleSize(15)}
-            color="rgba(212,175,55,0.55)"
+            color={c.goldA(0.55)}
             strokeWidth={2}
           />
           <Text
             style={{
               fontSize: scaleFont(13),
-              color: "rgba(212,175,55,0.55)",
+              color: c.goldA(0.55),
               fontWeight: "600",
               letterSpacing: 0.4,
             }}
@@ -667,18 +669,18 @@ export default function PlanScreen() {
             activeOpacity={0.85}
             onPress={() => router.push("/(main)/home" as any)}
             style={{
-              backgroundColor: "#7C3AED",
+              backgroundColor: c.violet,
               borderRadius: scaleSize(14),
               paddingVertical: scaleSize(15),
               alignItems: "center",
               marginTop: scaleSize(16),
               borderWidth: 1,
-              borderColor: "rgba(212,175,55,0.2)",
+              borderColor: c.goldA(0.2),
             }}
           >
             <Text
               style={{
-                color: "#fff",
+                color: c.text,
                 fontSize: scaleFont(14),
                 fontWeight: "700",
                 letterSpacing: 0.8,

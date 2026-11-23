@@ -32,6 +32,8 @@ import Navbar from "../../components/Navbar";
 import TopBar from "../../components/TopBar";
 import { scaleFont, scaleSize } from "../../hooks/useResponsive";
 
+import { c, themed } from "@/constants/theme";
+
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
 
@@ -47,47 +49,47 @@ const openWhatsApp = (number: string) =>
 
 const COMING_SOON = [
   {
-    icon: <Flame size={20} color="#D4AF37" strokeWidth={2} />,
+    icon: () => <Flame size={20} color={c.gold} strokeWidth={2} />,
     title: "Guided Prayer Series",
     desc: "Step-by-step prayer journeys for every season of your walk with God.",
   },
   {
-    icon: <Shield size={20} color="#D4AF37" strokeWidth={2} />,
+    icon: () => <Shield size={20} color={c.gold} strokeWidth={2} />,
     title: "Warfare Guides",
     desc: "Scripture-backed warfare prayers — standing firm against every principality.",
   },
   {
-    icon: <Clock size={20} color="#D4AF37" strokeWidth={2} />,
+    icon: () => <Clock size={20} color={c.gold} strokeWidth={2} />,
     title: "Fasting Plans",
     desc: "Structured fasting tracks with devotional support and prayer anchors.",
   },
   {
-    icon: <Zap size={20} color="#D4AF37" strokeWidth={2} />,
+    icon: () => <Zap size={20} color={c.gold} strokeWidth={2} />,
     title: "Longer Prayer Plans",
     desc: "30, 60, and 90-minute deep-prayer frameworks for extended communion.",
   },
   {
-    icon: <Users size={20} color="#D4AF37" strokeWidth={2} />,
+    icon: () => <Users size={20} color={c.gold} strokeWidth={2} />,
     title: "Pray With Others",
     desc: "Join live prayer rooms and intercede together in real time.",
   },
   {
-    icon: <Globe size={20} color="#D4AF37" strokeWidth={2} />,
+    icon: () => <Globe size={20} color={c.gold} strokeWidth={2} />,
     title: "Prayer Wall",
     desc: "Post your prayer requests. Let the Kairos community stand with you.",
   },
   {
-    icon: <Music size={20} color="#D4AF37" strokeWidth={2} />,
+    icon: () => <Music size={20} color={c.gold} strokeWidth={2} />,
     title: "Sacred Chants",
     desc: "Worship chants from your favourite ministers and artists — pray with sound.",
   },
   {
-    icon: <Mic2 size={20} color="#D4AF37" strokeWidth={2} />,
+    icon: () => <Mic2 size={20} color={c.gold} strokeWidth={2} />,
     title: "Prophetic Prayer Prompts",
     desc: "AI-assisted, Scripture-rooted prompts to break through when words fail.",
   },
   {
-    icon: <Star size={20} color="#D4AF37" strokeWidth={2} />,
+    icon: () => <Star size={20} color={c.gold} strokeWidth={2} />,
     title: "Prayer Streaks & Milestones",
     desc: "Track your faithfulness. Celebrate every altar you've built.",
   },
@@ -99,7 +101,7 @@ export default function AboutScreen() {
 
   return (
     <LinearGradient
-      colors={["#0a0312", "#17071e", "#2d1b4e"]}
+      colors={[c.bg, c.bg]}
       style={{ flex: 1 }}
     >
       <TopBar title="About" subtitle="Why Kairos exists" />
@@ -114,7 +116,7 @@ export default function AboutScreen() {
       >
         {/* ── HERO ── */}
         <View style={styles.heroCard}>
-          <Heart size={32} color="#D4AF37" strokeWidth={1.5} />
+          <Heart size={32} color={c.gold} strokeWidth={1.5} />
           <Text style={styles.heroTitle}>Built for one reason.</Text>
           <Text style={styles.heroText}>
             To make you pray.{"\n"}Not to impress. Not to perform.{"\n"}To
@@ -169,7 +171,7 @@ export default function AboutScreen() {
 
         {COMING_SOON.map((item, i) => (
           <View key={i} style={styles.featureCard}>
-            <View style={styles.featureIconBox}>{item.icon}</View>
+            <View style={styles.featureIconBox}>{item.icon()}</View>
             <View style={{ flex: 1 }}>
               <Text style={styles.featureTitle}>{item.title}</Text>
               <Text style={styles.featureDesc}>{item.desc}</Text>
@@ -190,7 +192,7 @@ export default function AboutScreen() {
           </Text>
 
           <View style={styles.supportBox}>
-            <Smartphone size={18} color="#D4AF37" strokeWidth={2} />
+            <Smartphone size={18} color={c.gold} strokeWidth={2} />
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.supportLabel}>OPay Transfer</Text>
               <Text style={styles.supportValue}>08086976247</Text>
@@ -199,7 +201,7 @@ export default function AboutScreen() {
           </View>
 
           <View style={styles.supportBox}>
-            <Smartphone size={18} color="#D4AF37" strokeWidth={2} />
+            <Smartphone size={18} color={c.gold} strokeWidth={2} />
             <View style={{ marginLeft: 12 }}>
               <Text style={styles.supportLabel}>BANK SUPPORT</Text>
               <Text style={styles.supportValue}>1960476133: ACCESS BANK</Text>
@@ -211,7 +213,7 @@ export default function AboutScreen() {
             style={styles.actionBtn}
             onPress={() => openLink("https://ko-fi.com/olatejuolamide")}
           >
-            <Heart size={16} color="#1a0f2e" strokeWidth={2.5} />
+            <Heart size={16} color={c.bg} strokeWidth={2.5} />
             <Text style={styles.actionBtnText}>Support via Ko-fi</Text>
           </TouchableOpacity>
         </View>
@@ -220,27 +222,27 @@ export default function AboutScreen() {
         <SectionTitle label="Get In Touch" />
         <View style={styles.card}>
           <ContactRow
-            icon={<Mail size={18} color="#D4AF37" strokeWidth={2} />}
+            icon={<Mail size={18} color={c.gold} strokeWidth={2} />}
             label="Send an Email"
             onPress={() => sendEmail("Kairos App")}
           />
           <ContactRow
-            icon={<MessageCircle size={18} color="#D4AF37" strokeWidth={2} />}
+            icon={<MessageCircle size={18} color={c.gold} strokeWidth={2} />}
             label="WhatsApp · +2348148325438"
             onPress={() => openWhatsApp(WHATSAPP_1)}
           />
           <ContactRow
-            icon={<MessageCircle size={18} color="#D4AF37" strokeWidth={2} />}
+            icon={<MessageCircle size={18} color={c.gold} strokeWidth={2} />}
             label="WhatsApp · +2348086976247"
             onPress={() => openWhatsApp(WHATSAPP_2)}
           />
           <ContactRow
-            icon={<Bug size={18} color="#D4AF37" strokeWidth={2} />}
+            icon={<Bug size={18} color={c.gold} strokeWidth={2} />}
             label="Report a Bug"
             onPress={() => sendEmail("Kairos App — Bug Report")}
           />
           <ContactRow
-            icon={<Zap size={18} color="#D4AF37" strokeWidth={2} />}
+            icon={<Zap size={18} color={c.gold} strokeWidth={2} />}
             label="Suggest a Feature"
             onPress={() => sendEmail("Kairos App — Feature Suggestion")}
           />
@@ -308,12 +310,12 @@ function ContactRow({
 
 // ── Styles ──────────────────────────────────────────────────────────────────
 
-const styles = StyleSheet.create({
+const styles = themed(() => StyleSheet.create({
   heroCard: {
-    backgroundColor: "rgba(76,20,123,0.28)",
+    backgroundColor: c.surface,
     borderRadius: scaleSize(24),
     borderWidth: 1,
-    borderColor: "rgba(212,175,55,0.25)",
+    borderColor: c.goldA(0.25),
     padding: scaleSize(28),
     alignItems: "center",
     marginBottom: scaleSize(8),
@@ -321,7 +323,7 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: scaleFont(22),
     fontWeight: "700",
-    color: "#fff",
+    color: c.text,
     marginTop: scaleSize(14),
     marginBottom: scaleSize(10),
     textAlign: "center",
@@ -329,7 +331,7 @@ const styles = StyleSheet.create({
   },
   heroText: {
     fontSize: scaleFont(17),
-    color: "rgba(255,255,255,0.8)",
+    color: c.ink(0.8),
     textAlign: "center",
     lineHeight: scaleFont(28),
     marginBottom: scaleSize(16),
@@ -337,65 +339,65 @@ const styles = StyleSheet.create({
   divider: {
     width: scaleSize(40),
     height: 1,
-    backgroundColor: "rgba(212,175,55,0.4)",
+    backgroundColor: c.goldA(0.4),
     marginBottom: scaleSize(16),
   },
   heroQuote: {
     fontSize: scaleFont(15),
-    color: "rgba(255,255,255,0.6)",
+    color: c.ink(0.6),
     fontStyle: "italic",
     textAlign: "center",
     lineHeight: scaleFont(24),
   },
   heroRef: {
-    color: "#D4AF37",
+    color: c.gold,
     fontStyle: "normal",
     fontWeight: "600",
   },
   sectionTitle: {
     fontSize: scaleFont(13),
     fontWeight: "700",
-    color: "#D4AF37",
+    color: c.gold,
     letterSpacing: 2.5,
     textTransform: "uppercase",
     marginTop: scaleSize(28),
     marginBottom: scaleSize(12),
   },
   card: {
-    backgroundColor: "rgba(76,20,123,0.22)",
+    backgroundColor: c.surface,
     borderRadius: scaleSize(20),
     borderWidth: 1,
-    borderColor: "rgba(212,175,55,0.15)",
+    borderColor: c.goldA(0.15),
     padding: scaleSize(22),
     marginBottom: scaleSize(4),
   },
   paragraph: {
     fontSize: scaleFont(16),
-    color: "rgba(255,255,255,0.82)",
+    color: c.ink(0.82),
     lineHeight: scaleFont(27),
     marginBottom: scaleSize(12),
   },
   gold: {
-    color: "#D4AF37",
+    color: c.gold,
     fontWeight: "700",
   },
   italic: {
     fontStyle: "italic",
-    color: "rgba(255,255,255,0.82)",
+    color: c.ink(0.82),
   },
   comingSoonNote: {
     fontSize: scaleFont(14),
-    color: "rgba(255,255,255,0.45)",
+    color: c.ink(0.45),
     marginBottom: scaleSize(12),
     lineHeight: scaleFont(22),
   },
   featureCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(76,20,123,0.18)",
+    backgroundColor: c.surface,
     borderRadius: scaleSize(16),
     borderWidth: 1,
-    borderColor: "rgba(212,175,55,0.12)",
+    borderColor: c.goldA(0.12),
     padding: scaleSize(14),
     marginBottom: scaleSize(10),
     gap: scaleSize(12),
@@ -404,49 +406,49 @@ const styles = StyleSheet.create({
     width: scaleSize(40),
     height: scaleSize(40),
     borderRadius: scaleSize(12),
-    backgroundColor: "rgba(212,175,55,0.1)",
+    backgroundColor: c.goldA(0.1),
     justifyContent: "center",
     alignItems: "center",
   },
   featureTitle: {
     fontSize: scaleFont(14),
     fontWeight: "700",
-    color: "#fff",
+    color: c.text,
     marginBottom: 3,
     letterSpacing: 0.2,
   },
   featureDesc: {
     fontSize: scaleFont(12),
-    color: "rgba(255,255,255,0.5)",
+    color: c.ink(0.5),
     lineHeight: scaleFont(18),
   },
   soonBadge: {
-    backgroundColor: "rgba(212,175,55,0.12)",
+    backgroundColor: c.goldA(0.12),
     borderRadius: scaleSize(20),
     paddingHorizontal: scaleSize(8),
     paddingVertical: scaleSize(3),
     borderWidth: 1,
-    borderColor: "rgba(212,175,55,0.25)",
+    borderColor: c.goldA(0.25),
   },
   soonText: {
     fontSize: scaleFont(8),
-    color: "#D4AF37",
+    color: c.gold,
     fontWeight: "700",
     letterSpacing: 1,
   },
   supportBox: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(212,175,55,0.07)",
+    backgroundColor: c.goldA(0.07),
     borderRadius: scaleSize(14),
     borderWidth: 1,
-    borderColor: "rgba(212,175,55,0.2)",
+    borderColor: c.goldA(0.2),
     padding: scaleSize(14),
     marginBottom: scaleSize(16),
   },
   supportLabel: {
     fontSize: scaleFont(10),
-    color: "rgba(255,255,255,0.4)",
+    color: c.ink(0.4),
     letterSpacing: 1.5,
     textTransform: "uppercase",
     marginBottom: 2,
@@ -454,16 +456,16 @@ const styles = StyleSheet.create({
   supportValue: {
     fontSize: scaleFont(18),
     fontWeight: "700",
-    color: "#D4AF37",
+    color: c.gold,
     letterSpacing: 1,
   },
   supportName: {
     fontSize: scaleFont(11),
-    color: "rgba(255,255,255,0.45)",
+    color: c.ink(0.45),
     marginTop: 2,
   },
   actionBtn: {
-    backgroundColor: "#D4AF37",
+    backgroundColor: c.gold,
     borderRadius: scaleSize(14),
     paddingVertical: scaleSize(14),
     alignItems: "center",
@@ -472,7 +474,7 @@ const styles = StyleSheet.create({
     gap: scaleSize(8),
   },
   actionBtnText: {
-    color: "#1a0f2e",
+    color: c.bg,
     fontWeight: "700",
     fontSize: scaleFont(15),
     letterSpacing: 0.5,
@@ -482,59 +484,59 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: scaleSize(12),
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(255,255,255,0.06)",
+    borderBottomColor: c.ink(0.06),
     gap: scaleSize(12),
   },
   contactIcon: {
     width: scaleSize(36),
     height: scaleSize(36),
     borderRadius: scaleSize(10),
-    backgroundColor: "rgba(212,175,55,0.08)",
+    backgroundColor: c.goldA(0.08),
     justifyContent: "center",
     alignItems: "center",
   },
   contactLabel: {
     fontSize: scaleFont(14),
-    color: "rgba(255,255,255,0.75)",
+    color: c.ink(0.75),
     fontWeight: "500",
   },
   footer: {
     marginTop: scaleSize(40),
     marginBottom: scaleSize(20),
     fontSize: scaleFont(13),
-    color: "rgba(255,255,255,0.35)",
+    color: c.ink(0.35),
     textAlign: "center",
     lineHeight: scaleFont(22),
     fontStyle: "italic",
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(10,3,18,0.95)",
+    backgroundColor: c.overlay,
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
   },
   modalCard: {
-    backgroundColor: "#1a0f2e",
+    backgroundColor: c.bg,
     borderRadius: scaleSize(24),
     padding: scaleSize(26),
     width: "90%",
     maxWidth: 400,
     borderWidth: 1,
-    borderColor: "rgba(212,175,55,0.3)",
+    borderColor: c.goldA(0.3),
     gap: scaleSize(12),
   },
   modalTitle: {
     fontSize: scaleFont(20),
     fontWeight: "700",
-    color: "#fff",
+    color: c.text,
     textAlign: "center",
     marginBottom: scaleSize(4),
   },
   modalText: {
     fontSize: scaleFont(15),
-    color: "rgba(255,255,255,0.7)",
+    color: c.ink(0.7),
     lineHeight: scaleFont(24),
     textAlign: "center",
   },
-});
+}));
