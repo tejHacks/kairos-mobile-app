@@ -9,7 +9,6 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import { StatusBar } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import "../global.css";
 import { rescheduleSavedPrayerNotifications } from "../hooks/usePrayerTimes";
 
 // Keep the splash up until fonts and the saved theme are ready
@@ -47,7 +46,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={palette.scheme === "dark" ? "light-content" : "dark-content"} backgroundColor={palette.bg} />
+      <StatusBar barStyle={palette.scheme === "dark" ? "light-content" : "dark-content"} />
       <BackgroundGradient>
         {/* Re-keyed on theme change so every screen re-renders with the new palette */}
         <Stack

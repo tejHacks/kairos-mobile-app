@@ -135,7 +135,7 @@ export default function Home() {
   const [prayerStartTime, setPrayerStartTime] = useState<number | null>(null);
 
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const appState = useRef<AppStateStatus>(AppState.currentState);
+  const appState = useRef<AppStateStatus>((AppState.currentState as AppStateStatus | null) ?? "active");
 
   // ── Static memos ──
   const anchorScripture = useMemo(

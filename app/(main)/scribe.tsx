@@ -272,7 +272,7 @@ function RichTextEditor({
   }, [content]);
 
   return (
-    <WebView
+    <EditorWebView
       ref={webviewRef}
       originWhitelist={["*"]}
       source={{ html: EDITOR_HTML }}
@@ -299,6 +299,9 @@ function RichTextEditor({
 }
 
 // ─── Main screen ────────────────────────────────────────────────────────────
+
+// react-native-webview\'s class types do not match the React 19.3 types yet.
+const EditorWebView = WebView as unknown as React.ComponentType<React.ComponentProps<typeof WebView> & { ref?: React.Ref<WebView> }>;
 
 export default function ScribeScreen() {
   const insets = useSafeAreaInsets();
@@ -405,7 +408,7 @@ export default function ScribeScreen() {
   if (showEditor) {
     return (
       <View style={{ flex: 1, backgroundColor: c.bg }}>
-        <StatusBar barStyle="light-content" backgroundColor={c.bg} />
+        <StatusBar barStyle={c.scheme === "dark" ? "light-content" : "dark-content"} />
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -579,7 +582,7 @@ export default function ScribeScreen() {
   // ── LIST VIEW ────────────────────────────────────────────────────────────
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <StatusBar barStyle="light-content" backgroundColor={c.bg} />
+      <StatusBar barStyle={c.scheme === "dark" ? "light-content" : "dark-content"} />
 
       <Animated.View
         style={{

@@ -555,7 +555,7 @@ export default function PlanScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <StatusBar barStyle="light-content" backgroundColor={c.bg} />
+      <StatusBar barStyle={c.scheme === "dark" ? "light-content" : "dark-content"} />
 
       {/* Shared TopBar handles the notch, About, and Settings now —
           no more duplicate header clutter on this screen. */}

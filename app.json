@@ -12,18 +12,18 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#1a0f2e",
+          "backgroundColor": "#F7F5F0",
           "image": "./assets/images/splash.png",
-          "resizeMode": "contain",
+          "imageWidth": 160,
           "dark": {
-            "backgroundColor": "#1a0f2e",
+            "backgroundColor": "#0E0D13",
             "image": "./assets/images/splash.png"
-          },
-          "imageWidth": 200
+          }
         }
       ],
       "expo-font",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-sharing"
     ],
     "android": {
       "package": "com.olateju.kairos",
@@ -31,8 +31,9 @@
         "android.permission.READ_EXTERNAL_STORAGE"
       ],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#1a0f2e"
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "monochromeImage": "./assets/images/adaptive-icon-monochrome.png",
+        "backgroundColor": "#1C1640"
       }
     },
     "ios": {
