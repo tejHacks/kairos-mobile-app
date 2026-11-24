@@ -37,15 +37,18 @@
     ],
     "android": {
       "package": "com.olateju.kairos",
-      "permissions": [
-        "android.permission.READ_EXTERNAL_STORAGE"
-      ],
+      "permissions": [],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "monochromeImage": "./assets/images/adaptive-icon-monochrome.png",
         "backgroundColor": "#0E0D13"
       },
-      "googleServicesFile": "./google-services.json"
+      "googleServicesFile": "./google-services.json",
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "ios": {
       "supportsTablet": true,
