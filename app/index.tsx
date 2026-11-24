@@ -59,7 +59,7 @@ const SLIDES: Slide[] = [
   {
     key: "splash",
     isSplash: true,
-    gradient: [c.bg, c.bg, c.violet],
+    gradient: [c.bg, c.bg, c.goldA(0.28)],
   },
   {
     key: "pray",
@@ -67,7 +67,7 @@ const SLIDES: Slide[] = [
     title: "Never miss your\nappointed hour",
     body: "Set sacred reminders through your day — morning, noon, evening — so prayer becomes rhythm, not afterthought.",
     Icon: Clock,
-    gradient: [c.bg, c.surface, c.violet],
+    gradient: [c.bg, c.surface, c.goldA(0.28)],
   },
   {
     key: "meditate",
@@ -75,7 +75,7 @@ const SLIDES: Slide[] = [
     title: "Let the Word\nsink deep",
     body: "Guided scripture meditations to slow you down and root your mind in truth, one verse at a time.",
     Icon: BookOpen,
-    gradient: [c.bg, c.surface, c.violet],
+    gradient: [c.bg, c.surface, c.goldA(0.28)],
   },
   {
     key: "fast",
@@ -83,7 +83,7 @@ const SLIDES: Slide[] = [
     title: "Deny the flesh.\nFeed the spirit.",
     body: "Plan, track, and stay accountable through seasons of fasting — with scripture and strength for every hour.",
     Icon: Droplets,
-    gradient: [c.bg, c.surface, c.violet],
+    gradient: [c.bg, c.surface, c.goldA(0.28)],
   },
   {
     key: "scribe",
@@ -91,7 +91,7 @@ const SLIDES: Slide[] = [
     title: "Write it down.\nWatch Him answer.",
     body: "Journal your prayers and testimonies. Come back later and see just how faithful He's been.",
     Icon: PenTool,
-    gradient: [c.bg, c.surface, c.violet],
+    gradient: [c.bg, c.surface, c.goldA(0.28)],
   },
   {
     key: "altar",

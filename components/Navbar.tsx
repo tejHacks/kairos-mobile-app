@@ -78,7 +78,7 @@ export default function Navbar() {
                     width: scale(80),
                     height: scale(80),
                     borderRadius: scale(40),
-                    backgroundColor: c.goldA(0.3),
+                    backgroundColor: c.goldA(isActive ? 0.3 : 0.18),
                     justifyContent: "center",
                     alignItems: "center",
                     position: "absolute",
@@ -103,18 +103,18 @@ export default function Navbar() {
                     borderColor: c.gold,
                   }}
                 >
-                  {/* PURPLE INNER CORE */}
+                  {/* GOLD INNER CORE */}
                   <View
                     style={{
                       width: scale(58),
                       height: scale(58),
                       borderRadius: scale(29),
-                      backgroundColor: c.violet,
+                      backgroundColor: c.goldFill,
                       justifyContent: "center",
                       alignItems: "center",
                     }}
                   >
-                    <Icon size={scale(28)} color={c.gold} strokeWidth={2.5} />
+                    <Icon size={scale(28)} color={c.onGoldFill} strokeWidth={2.5} />
                   </View>
                 </View>
               </TouchableOpacity>

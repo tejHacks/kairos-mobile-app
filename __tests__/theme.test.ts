@@ -37,9 +37,13 @@ describe.each<[string, Palette]>([
     }
   });
 
-  it("gold and violet are readable as text", () => {
+  it("gold is readable as text", () => {
     expect(contrast(p.gold, p.bg)).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(p.violet, p.bg)).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it("filled gold buttons stand out and their labels read clearly", () => {
+    expect(contrast(p.onGoldFill, p.goldFill)).toBeGreaterThanOrEqual(4.5);
+    expect(contrast(p.goldFill, p.bg)).toBeGreaterThanOrEqual(2);
   });
 
   it("text on the gold button is readable", () => {

@@ -1,6 +1,6 @@
 // app/(main)/meditation.tsx
 import { LinearGradient } from "expo-linear-gradient";
-import { BookOpen, ExternalLink, Quote, Sparkles } from "lucide-react-native";
+import { ExternalLink } from "lucide-react-native";
 import React, { useMemo } from "react";
 import {
   Dimensions,
@@ -72,10 +72,7 @@ export default function MeditationScreen() {
         >
           {/* VERSE OF THE DAY */}
           <View style={styles.dailyCard}>
-            <View style={styles.cardLabelRow}>
-              <Sparkles size={scale(13)} color={c.gold} strokeWidth={2} />
-              <Text style={styles.cardLabel}>VERSE OF THE DAY</Text>
-            </View>
+            <Text style={styles.cardLabel}>VERSE OF THE DAY</Text>
             <Text style={styles.verseText} selectable>
               {todaysVerse.text}
             </Text>
@@ -86,24 +83,23 @@ export default function MeditationScreen() {
 
           {/* DAILY QUOTE */}
           <View style={styles.quoteCard}>
-            <View style={styles.cardLabelRow}>
-              <Quote size={scale(13)} color={c.gold} strokeWidth={2} />
-              <Text style={styles.cardLabel}>DAILY WISDOM</Text>
-            </View>
+            <Text style={styles.cardLabel}>DAILY WISDOM</Text>
+            <Text style={styles.quoteMark}>&ldquo;</Text>
             <Text style={styles.quoteText} selectable>
-              &quot;{todaysQuote.text}&quot;
+              {todaysQuote.text}
             </Text>
+            <View style={styles.quoteRule} />
             <Text style={styles.quoteAuthor} selectable>
-              — {todaysQuote.author}
+              {todaysQuote.author}
+            </Text>
+            <Text style={styles.quoteSource} selectable>
+              {todaysQuote.source}
             </Text>
           </View>
 
           {/* DAILY PSALM */}
           <View style={styles.psalmCard}>
-            <View style={styles.cardLabelRow}>
-              <BookOpen size={scale(13)} color={c.gold} strokeWidth={2} />
-              <Text style={styles.cardLabel}>TODAY&apos;S PSALM</Text>
-            </View>
+            <Text style={styles.cardLabel}>TODAY&apos;S PSALM</Text>
             <Text style={styles.psalmText} selectable>
               {todaysPsalm.text}
             </Text>
@@ -113,22 +109,9 @@ export default function MeditationScreen() {
           </View>
 
           {/* TODAY'S THEME — the one theme surfaced each day, no browser needed */}
-          <View
-            style={[
-              styles.todaysThemeCard,
-              { borderColor: todaysTheme.color + "80" },
-            ]}
-          >
+          <View style={styles.todaysThemeCard}>
             <Text style={styles.cardLabel}>TODAY&apos;S THEME</Text>
-            <View style={styles.themeHeader}>
-              <View
-                style={[
-                  styles.themeDot,
-                  { backgroundColor: todaysTheme.color },
-                ]}
-              />
-              <Text style={styles.todaysThemeTitle}>{todaysTheme.title}</Text>
-            </View>
+            <Text style={styles.todaysThemeTitle}>{todaysTheme.title}</Text>
             <Text style={styles.verseText}>{todaysThemeVerse.text}</Text>
             <Text style={styles.verseRef}>{todaysThemeVerse.ref}</Text>
           </View>
@@ -146,7 +129,7 @@ export default function MeditationScreen() {
               onPress={() => Linking.openURL(HAGAH_PLAY_STORE_URL)}
               activeOpacity={0.85}
             >
-              <ExternalLink size={scale(14)} color={c.bg} strokeWidth={2.2} />
+              <ExternalLink size={scale(14)} color={c.onGoldFill} strokeWidth={2.2} />
               <Text style={styles.hagahButtonText}>Get Hagah</Text>
             </TouchableOpacity>
           </View>
@@ -249,22 +232,15 @@ const styles = themed(() => StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: c.gold,
+    backgroundColor: c.goldFill,
     borderRadius: 14,
     paddingVertical: 13,
   },
 
   hagahButtonText: {
-    color: c.bg,
+    color: c.onGoldFill,
     fontSize: scale(14),
     fontWeight: "700",
-  },
-
-  cardLabelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 12,
   },
 
   cardLabel: {
@@ -290,19 +266,41 @@ const styles = themed(() => StyleSheet.create({
     textAlign: "right",
   },
 
+  quoteMark: {
+    fontSize: scale(52),
+    lineHeight: scale(52),
+    height: scale(30),
+    color: c.gold,
+    fontWeight: "700",
+  },
+
   quoteText: {
-    fontSize: scale(17),
+    fontSize: scale(18),
     color: c.text,
-    lineHeight: scale(28),
-    marginBottom: 12,
+    lineHeight: scale(29),
+    marginBottom: 16,
     fontStyle: "italic",
   },
 
+  quoteRule: {
+    width: 32,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: c.gold,
+    marginBottom: 10,
+  },
+
   quoteAuthor: {
-    fontSize: scale(14),
-    color: c.violet,
-    fontWeight: "600",
-    textAlign: "right",
+    fontSize: scale(15),
+    color: c.gold,
+    fontWeight: "700",
+  },
+
+  quoteSource: {
+    fontSize: scale(12),
+    color: c.textMuted,
+    fontStyle: "italic",
+    marginTop: 2,
   },
 
   psalmText: {
@@ -314,28 +312,16 @@ const styles = themed(() => StyleSheet.create({
 
   psalmRef: {
     fontSize: scale(14),
-    color: "#14B8A6",
+    color: c.gold,
     fontWeight: "600",
     textAlign: "right",
-  },
-
-  themeHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-
-  themeDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
   },
 
   todaysThemeTitle: {
     fontSize: scale(20),
     fontWeight: "700",
     color: c.text,
-    marginLeft: 8,
+    marginBottom: 12,
   },
 
   footer: {

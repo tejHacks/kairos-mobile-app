@@ -3,18 +3,16 @@ import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import {
   Bold,
+  BookOpen,
   FileDown,
+  Feather,
   Italic,
-  LayoutGrid,
-  List as ListIcon,
-  PenLine,
   Plus,
-  Quote,
-  Trash2,
+  Search,
   Underline,
   X,
 } from "lucide-react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -35,8 +33,6 @@ import Navbar from "@/components/Navbar";
 import { c } from "@/constants/theme";
 
 // ─── Types ────────────────────────────────────────────────────────────────
-
-type ViewMode = "stack" | "grid";
 
 type EntryTag =
   | "prayer"
@@ -65,19 +61,20 @@ interface JournalEntry {
 
 const STORAGE_KEY = "@kairos/scribe_entries";
 
+// Warm, earthy tag colours that sit well beside the gold accent.
 const tagColors: Record<EntryTag, string> = {
-  prayer: "#3B82F6",
-  instruction: c.violet,
-  insight: "#F59E0B",
-  song: "#EC4899",
-  dream: "#06B6D4",
-  testimony: "#10B981",
-  burden: c.danger,
-  prayerpoint: "#F97316",
-  wisdom: "#84CC16",
-  word: c.violet,
-  temptation: c.danger,
-  meditation: "#14B8A6",
+  prayer: "#B8862B",
+  instruction: "#A8642A",
+  insight: "#3E7CB1",
+  song: "#B5577A",
+  dream: "#3F8DA0",
+  testimony: "#4C8F62",
+  burden: "#A6483A",
+  prayerpoint: "#C7742A",
+  wisdom: "#71903A",
+  word: "#8C6D25",
+  temptation: "#9A3B3B",
+  meditation: "#3D8A80",
 };
 
 const tagLabels: Record<EntryTag, string> = {
@@ -173,7 +170,7 @@ const exportEntryToPdf = async (entry: JournalEntry) => {
 // contenteditable surface. Mirrors the pattern used in ExpoForge's CodeEditor
 // — a small bundled HTML page rendered in a WebView.
 
-const EDITOR_HTML = `<!DOCTYPE html>
+const editorHtml = (p: { text: string; muted: string; caret: string; strong: string }) => `<!DOCTYPE html>
 <html><head><meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 <style>
@@ -183,17 +180,17 @@ const EDITOR_HTML = `<!DOCTYPE html>
     font-family: Georgia, 'Times New Roman', serif;
     font-size: 17px;
     line-height: 30px;
-    color: #EDE7F6;
+    color: ${p.text};
     padding: 4px 4px 40px 4px;
     min-height: 100vh;
     outline: none;
-    caret-color: #D4AF37;
+    caret-color: ${p.caret};
   }
   #editor:empty:before {
     content: attr(data-placeholder);
-    color: rgba(237,231,246,0.28);
+    color: ${p.muted};
   }
-  #editor b, #editor strong { font-weight: 700; color: #FFFFFF; }
+  #editor b, #editor strong { font-weight: 700; color: ${p.strong}; }
   #editor i, #editor em { font-style: italic; }
 </style></head>
 <body>
@@ -275,7 +272,7 @@ function RichTextEditor({
     <EditorWebView
       ref={webviewRef}
       originWhitelist={["*"]}
-      source={{ html: EDITOR_HTML }}
+      source={{ html: editorHtml({ text: c.text, muted: c.ink(0.3), caret: c.goldFill, strong: c.text }) }}
       style={{ flex: 1, backgroundColor: "transparent" }}
       containerStyle={{ backgroundColor: "transparent" }}
       scrollEnabled
@@ -307,7 +304,8 @@ export default function ScribeScreen() {
   const insets = useSafeAreaInsets();
   const headerAnim = useRef(new Animated.Value(0)).current;
 
-  const [viewMode, setViewMode] = useState<ViewMode>("stack");
+  const [query, setQuery] = useState("");
+  const [filter, setFilter] = useState<EntryTag | null>(null);
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showEditor, setShowEditor] = useState(false);
@@ -320,6 +318,25 @@ export default function ScribeScreen() {
   const [formatState, setFormatState] = useState<FormatState>({ bold: false, italic: false, underline: false });
 
   const webviewRef = useRef<WebView>(null!);
+
+  const usedTags = useMemo(
+    () => (Object.keys(tagLabels) as EntryTag[]).filter((t) => entries.some((e) => e.tag === t)),
+    [entries],
+  );
+
+  const visible = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return [...entries]
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      .filter((e) => !filter || e.tag === filter)
+      .filter(
+        (e) =>
+          !q ||
+          e.title.toLowerCase().includes(q) ||
+          (e.scriptureRef ?? "").toLowerCase().includes(q) ||
+          htmlToPlainText(e.content).toLowerCase().includes(q),
+      );
+  }, [entries, query, filter]);
 
   useEffect(() => {
     (async () => {
@@ -461,7 +478,7 @@ export default function ScribeScreen() {
                       style={{
                         fontSize: scaleFont(12),
                         fontWeight: "600",
-                        color: selected ? c.text : c.ink(0.4),
+                        color: selected ? "#FFFFFF" : c.ink(0.4),
                       }}
                     >
                       {tagLabels[tag]}
@@ -474,13 +491,13 @@ export default function ScribeScreen() {
             <TouchableOpacity
               onPress={save}
               style={{
-                backgroundColor: c.violet,
+                backgroundColor: c.goldFill,
                 paddingHorizontal: scaleSize(16),
                 paddingVertical: scaleSize(9),
                 borderRadius: scaleSize(14),
               }}
             >
-              <Text style={{ color: c.text, fontWeight: "700", fontSize: scaleFont(13) }}>Save</Text>
+              <Text style={{ color: c.onGoldFill, fontWeight: "800", fontSize: scaleFont(13) }}>Save</Text>
             </TouchableOpacity>
           </View>
 
@@ -580,191 +597,344 @@ export default function ScribeScreen() {
   }
 
   // ── LIST VIEW ────────────────────────────────────────────────────────────
+  const latest = visible[0];
+  const rest = visible.slice(1);
+  const groups = groupByMonth(rest);
+
+  const entryMenu = (entry: JournalEntry) =>
+    Alert.alert(entry.title, "What do you want to do?", [
+      { text: "Export PDF", onPress: () => exportEntryToPdf(entry) },
+      { text: "Delete", style: "destructive", onPress: () => remove(entry.id) },
+      { text: "Cancel", style: "cancel" },
+    ]);
+
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <StatusBar barStyle={c.scheme === "dark" ? "light-content" : "dark-content"} />
 
-      <Animated.View
-        style={{
-          opacity: headerAnim,
-          transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-12, 0] }) }],
-          paddingTop: insets.top + scaleSize(10),
-          paddingHorizontal: scaleSize(20),
-          paddingBottom: scaleSize(16),
-          backgroundColor: c.bg,
-          borderBottomWidth: 1,
-          borderBottomColor: c.goldA(0.12),
-        }}
-      >
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: scaleSize(8), marginBottom: scaleSize(6) }}>
-              <PenLine size={scaleSize(14)} color={c.gold} strokeWidth={2} />
-              <Text
-                style={{
-                  fontSize: scaleFont(11),
-                  color: c.gold,
-                  letterSpacing: 2,
-                  textTransform: "uppercase",
-                  fontWeight: "600",
-                }}
-              >
-                Sacred Record
-              </Text>
-            </View>
-            <Text style={{ fontSize: scaleFont(28), fontWeight: "700", color: c.text, letterSpacing: 0.5 }}>
-              Scribe
-            </Text>
-            <Text style={{ fontSize: scaleFont(12), color: c.ink(0.35), letterSpacing: 2, marginTop: 2 }}>
-              CAPTURE · REMEMBER · RETURN
-            </Text>
-          </View>
-
-          <View style={{ flexDirection: "row", gap: scaleSize(10) }}>
-            <TouchableOpacity
-              onPress={() => setViewMode(viewMode === "grid" ? "stack" : "grid")}
-              style={{
-                width: scaleSize(40),
-                height: scaleSize(40),
-                borderRadius: scaleSize(20),
-                backgroundColor: c.wash(0.06),
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {viewMode === "grid" ? (
-                <ListIcon size={scaleSize(17)} color={c.ink(0.7)} strokeWidth={2} />
-              ) : (
-                <LayoutGrid size={scaleSize(17)} color={c.ink(0.7)} strokeWidth={2} />
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={openNew}
-              style={{
-                width: scaleSize(40),
-                height: scaleSize(40),
-                borderRadius: scaleSize(20),
-                backgroundColor: c.violet,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Plus size={scaleSize(20)} color={c.text} strokeWidth={2.5} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {entries.length > 0 && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: scaleSize(6),
-              backgroundColor: c.goldA(0.12),
-              paddingHorizontal: scaleSize(12),
-              paddingVertical: scaleSize(6),
-              borderRadius: scaleSize(20),
-              borderWidth: 1,
-              borderColor: c.goldA(0.25),
-              alignSelf: "flex-start",
-              marginTop: scaleSize(14),
-            }}
-          >
-            <View style={{ width: scaleSize(6), height: scaleSize(6), borderRadius: scaleSize(3), backgroundColor: c.gold }} />
-            <Text style={{ fontSize: scaleFont(11), color: c.gold, fontWeight: "600" }}>
-              {entries.length} {entries.length === 1 ? "entry" : "entries"} written
-            </Text>
-          </View>
-        )}
-      </Animated.View>
-
       <ScrollView
         contentContainerStyle={{
-          paddingHorizontal: scaleSize(16),
-          paddingTop: scaleSize(16),
+          paddingTop: insets.top + scaleSize(14),
           paddingBottom: verticalScale(150) + insets.bottom + scaleSize(24),
-          flexDirection: viewMode === "grid" ? "row" : "column",
-          flexWrap: viewMode === "grid" ? "wrap" : "nowrap",
-          justifyContent: viewMode === "grid" ? "space-between" : undefined,
         }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
-        {loading ? null : entries.length === 0 ? (
-          <View style={{ alignItems: "center", marginTop: verticalScale(80), paddingHorizontal: scaleSize(40), width: "100%" }}>
-            <Quote size={scaleSize(30)} color={c.goldA(0.3)} strokeWidth={1.5} />
-            <Text
+        {/* Header */}
+        <Animated.View
+          style={{
+            opacity: headerAnim,
+            transform: [{ translateY: headerAnim.interpolate({ inputRange: [0, 1], outputRange: [-12, 0] }) }],
+            paddingHorizontal: scaleSize(20),
+          }}
+        >
+          <Text style={{ fontSize: scaleFont(11), color: c.gold, letterSpacing: 2, fontWeight: "800" }}>
+            {new Date().toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" }).toUpperCase()}
+          </Text>
+          <View style={{ flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", marginTop: scaleSize(4) }}>
+            <View>
+              <Text style={{ fontSize: scaleFont(34), fontWeight: "800", color: c.text, fontFamily: SERIF }}>Scribe</Text>
+              <Text style={{ fontSize: scaleFont(13), color: c.textMuted, marginTop: 2 }}>
+                {entries.length === 0
+                  ? "Write the vision; make it plain."
+                  : `${entries.length} ${entries.length === 1 ? "entry" : "entries"} · ${streakLabel(entries)}`}
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={openNew}
+              activeOpacity={0.85}
+              accessibilityLabel="New entry"
               style={{
-                fontSize: scaleFont(22),
-                fontWeight: "700",
-                color: c.text,
-                marginTop: scaleSize(14),
-                marginBottom: scaleSize(10),
-                textAlign: "center",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: scaleSize(6),
+                backgroundColor: c.goldFill,
+                paddingHorizontal: scaleSize(16),
+                paddingVertical: scaleSize(11),
+                borderRadius: scaleSize(22),
+                shadowColor: c.goldFill,
+                shadowOpacity: 0.4,
+                shadowRadius: 10,
+                shadowOffset: { width: 0, height: 4 },
+                elevation: 5,
               }}
             >
-              Your Journal Awaits
-            </Text>
-            <Text style={{ fontSize: scaleFont(14), color: c.ink(0.4), textAlign: "center", lineHeight: scaleFont(21) }}>
-              Capture instructions, prayers, dreams, and testimonies. Tap + to begin.
+              <Plus size={scaleSize(16)} color={c.onGoldFill} strokeWidth={3} />
+              <Text style={{ color: c.onGoldFill, fontWeight: "800", fontSize: scaleFont(14) }}>New</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+
+        {entries.length > 0 && (
+          <>
+            {/* Search */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: scaleSize(8),
+                marginHorizontal: scaleSize(20),
+                marginTop: scaleSize(18),
+                backgroundColor: c.surface,
+                borderRadius: scaleSize(14),
+                borderWidth: 1,
+                borderColor: c.ink(0.06),
+                paddingHorizontal: scaleSize(14),
+              }}
+            >
+              <Search size={scaleSize(16)} color={c.textMuted} strokeWidth={2} />
+              <TextInput
+                value={query}
+                onChangeText={setQuery}
+                placeholder="Search your journal"
+                placeholderTextColor={c.ink(0.35)}
+                style={{ flex: 1, color: c.text, fontSize: scaleFont(14), paddingVertical: scaleSize(12) }}
+                returnKeyType="search"
+              />
+              {!!query && (
+                <TouchableOpacity onPress={() => setQuery("")} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                  <X size={scaleSize(15)} color={c.textMuted} strokeWidth={2} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Tag filter */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ gap: scaleSize(8), paddingHorizontal: scaleSize(20), paddingVertical: scaleSize(14) }}
+            >
+              {([null, ...usedTags] as (EntryTag | null)[]).map((tag) => {
+                const on = filter === tag;
+                return (
+                  <TouchableOpacity
+                    key={tag ?? "all"}
+                    onPress={() => setFilter(tag)}
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: scaleSize(6),
+                      paddingHorizontal: scaleSize(12),
+                      paddingVertical: scaleSize(7),
+                      borderRadius: scaleSize(16),
+                      backgroundColor: on ? c.text : c.surface,
+                      borderWidth: 1,
+                      borderColor: on ? c.text : c.ink(0.08),
+                    }}
+                  >
+                    {tag && <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: tagColors[tag] }} />}
+                    <Text style={{ fontSize: scaleFont(12), fontWeight: "700", color: on ? c.bg : c.textSecondary }}>
+                      {tag ? tagLabels[tag] : "All"}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </>
+        )}
+
+        {loading ? null : entries.length === 0 ? (
+          <EmptyJournal onStart={openNew} />
+        ) : visible.length === 0 ? (
+          <Text style={{ color: c.textMuted, textAlign: "center", marginTop: scaleSize(40), fontSize: scaleFont(14) }}>
+            Nothing matches that yet.
+          </Text>
+        ) : (
+          <View style={{ paddingHorizontal: scaleSize(20) }}>
+            {/* Latest entry, featured */}
+            {latest && (
+              <TouchableOpacity
+                onPress={() => openEdit(latest)}
+                onLongPress={() => entryMenu(latest)}
+                activeOpacity={0.85}
+                style={{
+                  backgroundColor: c.surface,
+                  borderRadius: scaleSize(22),
+                  padding: scaleSize(20),
+                  borderWidth: 1,
+                  borderColor: c.goldA(0.25),
+                  marginBottom: scaleSize(22),
+                }}
+              >
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+                  <Text style={{ fontSize: scaleFont(10), color: c.gold, letterSpacing: 2, fontWeight: "800" }}>LATEST</Text>
+                  <TagPill tag={latest.tag} />
+                </View>
+                <Text
+                  style={{ fontSize: scaleFont(22), fontWeight: "700", color: c.text, marginTop: scaleSize(12), fontFamily: SERIF }}
+                  numberOfLines={2}
+                >
+                  {latest.title}
+                </Text>
+                {latest.scriptureRef && (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: scaleSize(6) }}>
+                    <BookOpen size={scaleSize(12)} color={c.gold} strokeWidth={2} />
+                    <Text style={{ fontSize: scaleFont(12), color: c.gold, fontWeight: "700" }}>{latest.scriptureRef}</Text>
+                  </View>
+                )}
+                <Text
+                  style={{ fontSize: scaleFont(15), color: c.textSecondary, lineHeight: scaleFont(24), marginTop: scaleSize(10), fontFamily: SERIF }}
+                  numberOfLines={4}
+                >
+                  {htmlToPlainText(latest.content)}
+                </Text>
+                <Text style={{ fontSize: scaleFont(11), color: c.textMuted, marginTop: scaleSize(12) }}>
+                  {formatTimestamp(latest.timestamp)}
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Timeline by month */}
+            {groups.map(([month, list]) => (
+              <View key={month} style={{ marginBottom: scaleSize(8) }}>
+                <Text style={{ fontSize: scaleFont(11), color: c.textMuted, letterSpacing: 2, fontWeight: "800", marginBottom: scaleSize(12) }}>
+                  {month}
+                </Text>
+                {list.map((entry, i) => (
+                  <View key={entry.id} style={{ flexDirection: "row" }}>
+                    {/* date rail */}
+                    <View style={{ width: scaleSize(44), alignItems: "center" }}>
+                      <Text style={{ fontSize: scaleFont(20), fontWeight: "300", color: c.text }}>{entry.timestamp.getDate()}</Text>
+                      <Text style={{ fontSize: scaleFont(9), fontWeight: "800", color: c.textMuted, letterSpacing: 1 }}>
+                        {entry.timestamp.toLocaleDateString([], { weekday: "short" }).toUpperCase()}
+                      </Text>
+                      {i < list.length - 1 && (
+                        <View style={{ flex: 1, width: 1, backgroundColor: c.goldA(0.25), marginTop: scaleSize(6), marginBottom: -scaleSize(4) }} />
+                      )}
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={() => openEdit(entry)}
+                      onLongPress={() => entryMenu(entry)}
+                      activeOpacity={0.8}
+                      style={{
+                        flex: 1,
+                        marginLeft: scaleSize(10),
+                        marginBottom: scaleSize(12),
+                        backgroundColor: c.surface,
+                        borderRadius: scaleSize(16),
+                        padding: scaleSize(14),
+                        borderWidth: 1,
+                        borderColor: c.ink(0.06),
+                        borderLeftWidth: 3,
+                        borderLeftColor: tagColors[entry.tag],
+                      }}
+                    >
+                      <Text style={{ fontSize: scaleFont(10), fontWeight: "800", color: tagColors[entry.tag], letterSpacing: 1 }}>
+                        {tagLabels[entry.tag].toUpperCase()}
+                        {entry.scriptureRef ? <Text style={{ color: c.gold }}>{`  ·  ${entry.scriptureRef}`}</Text> : null}
+                      </Text>
+                      <Text style={{ fontSize: scaleFont(16), fontWeight: "700", color: c.text, marginTop: scaleSize(4) }} numberOfLines={1}>
+                        {entry.title}
+                      </Text>
+                      <Text style={{ fontSize: scaleFont(13), color: c.textMuted, lineHeight: scaleFont(19), marginTop: 2 }} numberOfLines={2}>
+                        {htmlToPlainText(entry.content)}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+            ))}
+
+            <Text style={{ fontSize: scaleFont(11), color: c.textMuted, textAlign: "center", marginTop: scaleSize(8) }}>
+              Long-press an entry to export or delete it.
             </Text>
           </View>
-        ) : (
-          entries.map((entry) => (
-            <TouchableOpacity
-              key={entry.id}
-              onPress={() => openEdit(entry)}
-              onLongPress={() =>
-                Alert.alert(entry.title, "What do you want to do?", [
-                  { text: "Export PDF", onPress: () => exportEntryToPdf(entry) },
-                  { text: "Delete", style: "destructive", onPress: () => remove(entry.id) },
-                  { text: "Cancel", style: "cancel" },
-                ])
-              }
-              activeOpacity={0.8}
-              style={{
-                width: viewMode === "grid" ? "48%" : "100%",
-                backgroundColor: c.bg,
-                borderRadius: scaleSize(16),
-                padding: scaleSize(16),
-                marginBottom: scaleSize(12),
-                borderWidth: 1,
-                borderColor: c.ink(0.05),
-              }}
-            >
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: scaleSize(8), flexWrap: "wrap", gap: 6 }}>
-                <View
-                  style={{
-                    backgroundColor: tagColors[entry.tag],
-                    paddingHorizontal: scaleSize(10),
-                    paddingVertical: scaleSize(4),
-                    borderRadius: scaleSize(8),
-                  }}
-                >
-                  <Text style={{ fontSize: scaleFont(10), fontWeight: "700", color: c.text, letterSpacing: 0.4 }}>
-                    {tagLabels[entry.tag]}
-                  </Text>
-                </View>
-                <Text style={{ fontSize: scaleFont(11), color: c.ink(0.35) }}>
-                  {formatTimestamp(entry.timestamp)}
-                </Text>
-              </View>
-              {entry.scriptureRef && (
-                <Text style={{ fontSize: scaleFont(12), color: c.gold, fontWeight: "600", marginBottom: scaleSize(6) }}>
-                  {entry.scriptureRef}
-                </Text>
-              )}
-              <Text style={{ fontSize: scaleFont(17), fontWeight: "700", color: c.text, marginBottom: scaleSize(6) }} numberOfLines={2}>
-                {entry.title}
-              </Text>
-              <Text style={{ fontSize: scaleFont(14), color: c.ink(0.5), lineHeight: scaleFont(20) }} numberOfLines={viewMode === "grid" ? 4 : 2}>
-                {htmlToPlainText(entry.content)}
-              </Text>
-            </TouchableOpacity>
-          ))
         )}
       </ScrollView>
 
       <Navbar />
+    </View>
+  );
+}
+
+// ─── List helpers ───────────────────────────────────────────────────────────
+
+const SERIF = Platform.select({ ios: "Georgia", android: "serif", default: "serif" });
+
+function groupByMonth(list: JournalEntry[]): [string, JournalEntry[]][] {
+  const map = new Map<string, JournalEntry[]>();
+  for (const e of list) {
+    const key = e.timestamp.toLocaleDateString([], { month: "long", year: "numeric" }).toUpperCase();
+    if (!map.has(key)) map.set(key, []);
+    map.get(key)!.push(e);
+  }
+  return [...map.entries()];
+}
+
+/** "3-day streak" when you've written on consecutive days up to today/yesterday. */
+function streakLabel(list: JournalEntry[]) {
+  const days = new Set(list.map((e) => e.timestamp.toDateString()));
+  const d = new Date();
+  if (!days.has(d.toDateString())) d.setDate(d.getDate() - 1);
+  let n = 0;
+  while (days.has(d.toDateString())) {
+    n++;
+    d.setDate(d.getDate() - 1);
+  }
+  return n >= 2 ? `${n}-day streak` : "keep writing";
+}
+
+function TagPill({ tag }: { tag: EntryTag }) {
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+        paddingHorizontal: scaleSize(10),
+        paddingVertical: scaleSize(4),
+        borderRadius: scaleSize(12),
+        backgroundColor: c.ink(0.05),
+      }}
+    >
+      <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: tagColors[tag] }} />
+      <Text style={{ fontSize: scaleFont(11), fontWeight: "700", color: c.textSecondary }}>{tagLabels[tag]}</Text>
+    </View>
+  );
+}
+
+function EmptyJournal({ onStart }: { onStart: () => void }) {
+  return (
+    <View style={{ alignItems: "center", marginTop: verticalScale(50), paddingHorizontal: scaleSize(36) }}>
+      <View
+        style={{
+          width: scaleSize(72),
+          height: scaleSize(72),
+          borderRadius: scaleSize(36),
+          backgroundColor: c.goldA(0.12),
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Feather size={scaleSize(30)} color={c.gold} strokeWidth={1.6} />
+      </View>
+      <Text style={{ fontSize: scaleFont(22), fontWeight: "700", color: c.text, marginTop: scaleSize(18), fontFamily: SERIF }}>
+        Your journal awaits
+      </Text>
+      <Text style={{ fontSize: scaleFont(14), color: c.textMuted, textAlign: "center", lineHeight: scaleFont(21), marginTop: scaleSize(8) }}>
+        Capture instructions, prayers, dreams and testimonies. Come back later and see how faithful He has been.
+      </Text>
+      <Text style={{ fontSize: scaleFont(13), color: c.gold, fontStyle: "italic", textAlign: "center", marginTop: scaleSize(14) }}>
+        &quot;Write the vision, and make it plain upon tables, that he may run that readeth it.&quot; Habakkuk 2:2
+      </Text>
+      <TouchableOpacity
+        onPress={onStart}
+        activeOpacity={0.85}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: scaleSize(8),
+          backgroundColor: c.goldFill,
+          paddingHorizontal: scaleSize(22),
+          paddingVertical: scaleSize(14),
+          borderRadius: scaleSize(16),
+          marginTop: scaleSize(22),
+        }}
+      >
+        <Plus size={scaleSize(16)} color={c.onGoldFill} strokeWidth={3} />
+        <Text style={{ color: c.onGoldFill, fontWeight: "800", fontSize: scaleFont(15) }}>Write your first entry</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -785,12 +955,12 @@ function FormatButton({
         width: scaleSize(38),
         height: scaleSize(38),
         borderRadius: scaleSize(10),
-        backgroundColor: active ? c.gold : c.ink(0.06),
+        backgroundColor: active ? c.goldFill : c.ink(0.06),
         alignItems: "center",
         justifyContent: "center",
       }}
     >
-      <Icon size={scaleSize(16)} color={active ? c.bg : c.ink(0.6)} strokeWidth={2.2} />
+      <Icon size={scaleSize(16)} color={active ? c.onGoldFill : c.ink(0.6)} strokeWidth={2.2} />
     </TouchableOpacity>
   );
 }

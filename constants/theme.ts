@@ -1,8 +1,8 @@
 /**
  * Kairos theme: Light and Dark only.
  *
- * Light: warm ivory, royal violet, deep gold. Dark: near-black, soft violet,
- * warm gold. By default Kairos follows the phone; Settings can pin one.
+ * Light: warm ivory and deep gold. Dark: near-black and warm gold. Gold is
+ * the one accent: text and icons use `gold`, filled buttons use `goldFill`. By default Kairos follows the phone; Settings can pin one.
  *
  * Screens read colours through `c` (a live view of the current palette) and
  * wrap their StyleSheets in `themed(...)`, so a theme change only needs the
@@ -38,9 +38,10 @@ export interface Palette {
   goldA: (alpha: number) => string;
   /** Text on a gold button */
   onGold: string;
-  /** Violet: secondary accent */
-  violet: string;
-  violetA: (alpha: number) => string;
+  /** A bright gold for filled buttons that need to stand out */
+  goldFill: string;
+  /** Text and icons on `goldFill` */
+  onGoldFill: string;
   danger: string;
   overlay: string;
 }
@@ -70,8 +71,8 @@ export const light: Palette = {
   gold: "#8A6516",
   goldA: (a) => rgba("#8A6516", tier(a, 0.3)),
   onGold: "#FFFFFF",
-  violet: "#5B3FA8",
-  violetA: (a) => rgba("#5B3FA8", tier(a, 0.3)),
+  goldFill: "#C9972B",
+  onGoldFill: "#1A1405",
   danger: "#B42318",
   overlay: "rgba(20,18,26,0.5)",
 };
@@ -89,8 +90,8 @@ export const dark: Palette = {
   gold: "#E0B850",
   goldA: (a) => rgba("#E0B850", tier(a, 0.15)),
   onGold: "#17130A",
-  violet: "#B3A6F5",
-  violetA: (a) => rgba("#B3A6F5", tier(a, 0.15)),
+  goldFill: "#E0B850",
+  onGoldFill: "#17130A",
   danger: "#F87171",
   overlay: "rgba(0,0,0,0.6)",
 };

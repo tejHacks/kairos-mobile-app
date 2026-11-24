@@ -14,6 +14,7 @@ import {
   Square,
   Sun,
   Sunrise,
+  X,
 } from "lucide-react-native";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
@@ -79,7 +80,7 @@ const FAST_PLANS: {
       "Traditional biblical pattern used throughout scripture",
       "Physically resets appetite and cravings",
     ],
-    verse: "But when you fast, put oil on your head and wash your face.",
+    verse: "But thou, when thou fastest, anoint thine head, and wash thy face;",
     ref: "Matthew 6:17",
   },
   {
@@ -93,7 +94,7 @@ const FAST_PLANS: {
       "A good entry point if you're new to fasting",
       "Still creates real hunger that turns you toward God",
     ],
-    verse: "So we fasted and petitioned our God about this, and he answered our prayer.",
+    verse: "So we fasted and besought our God for this: and he was intreated of us.",
     ref: "Ezra 8:23",
   },
   {
@@ -107,7 +108,7 @@ const FAST_PLANS: {
       "Removes rich food and indulgence while keeping strength up",
       "Modeled directly after Daniel's discipline in captivity",
     ],
-    verse: "I ate no choice food; no meat or wine touched my lips.",
+    verse: "I ate no pleasant bread, neither came flesh nor wine in my mouth.",
     ref: "Daniel 10:3",
   },
   {
@@ -121,7 +122,7 @@ const FAST_PLANS: {
       "Reserved for serious, focused seasons of prayer",
       "Keep these shorter — 24-72 hours — unless medically guided",
     ],
-    verse: "Even now, return to me with all your heart, with fasting and weeping.",
+    verse: "Turn ye even to me with all your heart, and with fasting, and with weeping, and with mourning.",
     ref: "Joel 2:12",
   },
   {
@@ -149,7 +150,7 @@ const FAST_PLANS: {
       "Great for a set window each day — mornings or evenings",
       "Pairs naturally with a phone fast",
     ],
-    verse: "Man shall not live on bread alone, but on every word that comes from the mouth of God.",
+    verse: "Man shall not live by bread alone, but by every word that proceedeth out of the mouth of God.",
     ref: "Matthew 4:4",
   },
   {
@@ -163,7 +164,7 @@ const FAST_PLANS: {
       "Traditionally kept very short (hours, not days)",
       "Requires real physical caution — see health notes below",
     ],
-    verse: "For three days I did not eat or drink anything.",
+    verse: "Fast ye for me, and neither eat nor drink three days, night or day.",
     ref: "Esther 4:16",
   },
 ];
@@ -237,6 +238,7 @@ export default function FastingScreen() {
   const [elapsed, setElapsed] = useState(0);
   const [loading, setLoading] = useState(true);
   const [expandedPlan, setExpandedPlan] = useState<FastType | null>(null);
+  const [whyOpen, setWhyOpen] = useState(false);
 
   const [sheetPlan, setSheetPlan] = useState<FastType | null>(null);
   const [tempStart, setTempStart] = useState(new Date());
@@ -261,6 +263,8 @@ export default function FastingScreen() {
           setFast(saved);
           if (saved.active && saved.startTime) setElapsed(Date.now() - saved.startTime);
         }
+        // "Why Fast" greets you each time you open Fasting, unless a fast is running.
+        setWhyOpen(!(raw && JSON.parse(raw).active));
         const schedule = await getFastingSchedule();
         const { hour12, period } = to12Hour(schedule.reminderHour);
         setReminderHour12(hour12);
@@ -510,47 +514,14 @@ export default function FastingScreen() {
           </>
         ) : (
           <>
-            <View
-              style={{
-                backgroundColor: c.bg,
-                borderRadius: scaleSize(16),
-                padding: scaleSize(18),
-                borderWidth: 1,
-                borderColor: c.goldA(0.12),
-                marginBottom: scaleSize(20),
-              }}
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: scaleSize(8), marginBottom: scaleSize(10) }}>
-                <Sun size={scaleSize(14)} color={c.gold} strokeWidth={2} />
-                <Text style={{ fontSize: scaleFont(11), color: c.gold, letterSpacing: 1.5, textTransform: "uppercase", fontWeight: "600" }}>
-                  Why Fast
-                </Text>
-              </View>
-              <Text style={{ fontSize: scaleFont(14), color: c.ink(0.75), lineHeight: scaleFont(22) }}>
-                Fast often, and pray much. Jesus Himself, full of the Spirit, went into the wilderness and
-                fasted forty days before He began His ministry — fasting was part of His rhythm, not a rare
-                event. Make it part of yours too.
-              </Text>
-              <Text
-                style={{
-                  fontSize: scaleFont(11),
-                  color: c.goldA(0.6),
-                  marginTop: scaleSize(10),
-                  fontStyle: "italic",
-                }}
-              >
-                — Luke 4:1-2
-              </Text>
-            </View>
-
             <Text style={sectionLabelStyle}>Set Your Rhythm</Text>
             <View
               style={{
-                backgroundColor: c.bg,
+                backgroundColor: c.surface,
                 borderRadius: scaleSize(16),
                 padding: scaleSize(16),
                 borderWidth: 1,
-                borderColor: c.ink(0.05),
+                borderColor: c.ink(0.06),
                 marginBottom: scaleSize(20),
               }}
             >
@@ -606,7 +577,7 @@ export default function FastingScreen() {
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    backgroundColor: c.bg,
+                    backgroundColor: c.surface2,
                     borderRadius: scaleSize(12),
                     paddingHorizontal: scaleSize(14),
                     paddingVertical: scaleSize(12),
@@ -624,7 +595,7 @@ export default function FastingScreen() {
                     flexDirection: "row",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    backgroundColor: c.bg,
+                    backgroundColor: c.surface2,
                     borderRadius: scaleSize(12),
                     paddingHorizontal: scaleSize(14),
                     paddingVertical: scaleSize(12),
@@ -649,7 +620,7 @@ export default function FastingScreen() {
                   <View
                     key={plan.id}
                     style={{
-                      backgroundColor: expanded ? c.surface : c.bg,
+                      backgroundColor: c.surface,
                       borderRadius: scaleSize(14),
                       borderWidth: 1,
                       borderColor: expanded ? c.goldA(0.25) : c.ink(0.05),
@@ -716,13 +687,13 @@ export default function FastingScreen() {
                             alignItems: "center",
                             justifyContent: "center",
                             gap: scaleSize(8),
-                            backgroundColor: c.violet,
+                            backgroundColor: c.goldFill,
                             borderRadius: scaleSize(12),
                             paddingVertical: scaleSize(12),
                           }}
                         >
-                          <Play size={scaleSize(14)} color={c.text} strokeWidth={2} fill={c.text} />
-                          <Text style={{ color: c.text, fontSize: scaleFont(13), fontWeight: "700" }}>Start Fast</Text>
+                          <Play size={scaleSize(14)} color={c.onGoldFill} strokeWidth={2} fill={c.onGoldFill} />
+                          <Text style={{ color: c.onGoldFill, fontSize: scaleFont(13), fontWeight: "800" }}>Start Fast</Text>
                         </TouchableOpacity>
                       </View>
                     )}
@@ -737,6 +708,8 @@ export default function FastingScreen() {
       </ScrollView>
 
       <Navbar />
+
+      <WhyFastModal visible={whyOpen} onClose={() => setWhyOpen(false)} />
 
       <Modal visible={sheetPlan !== null} transparent animationType="slide" onRequestClose={() => setSheetPlan(null)}>
         <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: c.overlay }}>
@@ -801,14 +774,14 @@ export default function FastingScreen() {
                     alignItems: "center",
                     justifyContent: "center",
                     gap: scaleSize(8),
-                    backgroundColor: c.violet,
+                    backgroundColor: c.goldFill,
                     borderRadius: scaleSize(14),
                     paddingVertical: scaleSize(16),
                     marginTop: scaleSize(4),
                   }}
                 >
-                  <Play size={scaleSize(16)} color={c.text} strokeWidth={2} fill={c.text} />
-                  <Text style={{ color: c.text, fontSize: scaleFont(15), fontWeight: "700" }}>Start Fasting</Text>
+                  <Play size={scaleSize(16)} color={c.onGoldFill} strokeWidth={2} fill={c.onGoldFill} />
+                  <Text style={{ color: c.onGoldFill, fontSize: scaleFont(15), fontWeight: "800" }}>Start Fasting</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -952,6 +925,76 @@ function TimeRow({ label, value, onPress }: { label: string; value: Date; onPres
         {value.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
       </Text>
     </TouchableOpacity>
+  );
+}
+
+function WhyFastModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={{ flex: 1, backgroundColor: c.overlay, justifyContent: "center", padding: scaleSize(24) }}>
+        <View
+          style={{
+            backgroundColor: c.surface,
+            borderRadius: scaleSize(24),
+            padding: scaleSize(24),
+            borderWidth: 1,
+            borderColor: c.goldA(0.3),
+          }}
+        >
+          <TouchableOpacity
+            onPress={onClose}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            style={{
+              position: "absolute",
+              top: scaleSize(14),
+              right: scaleSize(14),
+              width: scaleSize(32),
+              height: scaleSize(32),
+              borderRadius: scaleSize(16),
+              backgroundColor: c.ink(0.06),
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <X size={scaleSize(16)} color={c.text} strokeWidth={2.2} />
+          </TouchableOpacity>
+
+          <Text style={{ fontSize: scaleFont(11), color: c.gold, letterSpacing: 2, fontWeight: "800", marginBottom: scaleSize(8) }}>
+            WHY FAST
+          </Text>
+          <Text style={{ fontSize: scaleFont(22), fontWeight: "800", color: c.text, marginBottom: scaleSize(12), paddingRight: scaleSize(30) }}>
+            Fast often, and pray much.
+          </Text>
+          <Text style={{ fontSize: scaleFont(15), color: c.textSecondary, lineHeight: scaleFont(24) }}>
+            Jesus Himself, full of the Spirit, went into the wilderness and fasted forty days before He began His
+            ministry. Fasting was part of His rhythm, not a rare event. Make it part of yours too.
+          </Text>
+          <Text style={{ fontSize: scaleFont(13), color: c.textMuted, marginTop: scaleSize(14), fontStyle: "italic", lineHeight: scaleFont(20) }}>
+            &quot;And Jesus being full of the Holy Ghost returned from Jordan, and was led by the Spirit into the
+            wilderness, being forty days tempted of the devil. And in those days he did eat nothing.&quot;
+          </Text>
+          <Text style={{ fontSize: scaleFont(12), color: c.gold, marginTop: scaleSize(6), fontWeight: "700", textAlign: "right" }}>
+            Luke 4:1-2
+          </Text>
+
+          <TouchableOpacity
+            onPress={onClose}
+            activeOpacity={0.85}
+            style={{
+              backgroundColor: c.goldFill,
+              borderRadius: scaleSize(14),
+              paddingVertical: scaleSize(15),
+              alignItems: "center",
+              marginTop: scaleSize(20),
+            }}
+          >
+            <Text style={{ color: c.onGoldFill, fontSize: scaleFont(15), fontWeight: "800" }}>See Fasting Plans</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
