@@ -28,6 +28,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { scaleFont, scaleSize, verticalScale } from "../../hooks/useResponsive";
 import {
@@ -251,6 +252,18 @@ export default function FastingScreen() {
   const [hourDropdownOpen, setHourDropdownOpen] = useState(false);
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false);
 
+  // "Why Fast" greets you each time you arrive on Fasting (unless a fast is
+  // running) and closes when you leave, so it never floats over other screens.
+  const activeRef = useRef(false);
+  activeRef.current = fast.active;
+  const loadedRef = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (loadedRef.current && !activeRef.current) setWhyOpen(true);
+      return () => setWhyOpen(false);
+    }, []),
+  );
+
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -263,7 +276,7 @@ export default function FastingScreen() {
           setFast(saved);
           if (saved.active && saved.startTime) setElapsed(Date.now() - saved.startTime);
         }
-        // "Why Fast" greets you each time you open Fasting, unless a fast is running.
+        loadedRef.current = true;
         setWhyOpen(!(raw && JSON.parse(raw).active));
         const schedule = await getFastingSchedule();
         const { hour12, period } = to12Hour(schedule.reminderHour);
