@@ -73,6 +73,16 @@ Kairos isn't just an app; it's a spiritual tool. Version 1 focuses on a zero-bac
 
 > Note: The splash screen only appears on the first launch. After the user starts the app once, future opens go directly to `home.tsx` and `app/index.tsx` is skipped.
 
+### Firebase and Crashlytics
+
+Crash reporting uses Firebase Crashlytics (`@react-native-firebase`). The config files
+`google-services.json` and `GoogleService-Info.plist` are not committed. Download them
+from the Firebase console (or `firebase apps:sdkconfig`) into the project root.
+`.easignore` makes sure EAS Build still uploads them.
+
+Crashlytics needs a development or release build; in Expo Go it is switched off
+automatically. Reports are collected only in release builds.
+
 ### Building for Production
 
 Use EAS Build for production builds:

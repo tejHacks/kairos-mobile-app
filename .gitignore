@@ -83,3 +83,6 @@ yarn-error.*
 *.tsbuildinfo
 
 # @end expo-cli
+# Firebase config (kept out of the public repo; EAS uploads them via .easignore)
+google-services.json
+GoogleService-Info.plist

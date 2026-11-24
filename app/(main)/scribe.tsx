@@ -31,6 +31,7 @@ import { scaleFont, scaleSize, verticalScale } from "../../hooks/useResponsive";
 import Navbar from "@/components/Navbar";
 
 import { c } from "@/constants/theme";
+import { reportError } from "@/lib/crashlytics";
 
 // ─── Types ────────────────────────────────────────────────────────────────
 
@@ -161,6 +162,7 @@ const exportEntryToPdf = async (entry: JournalEntry) => {
   } catch (e) {
     Alert.alert("Export Failed", "Could not generate PDF. Please try again.");
     console.error("[Scribe] PDF export error:", e);
+      reportError(e, "[Scribe] PDF export error:");
   }
 };
 
@@ -348,6 +350,7 @@ export default function ScribeScreen() {
         }
       } catch (e) {
         console.error("[Scribe] Failed to load entries:", e);
+      reportError(e, "[Scribe] Failed to load entries:");
       } finally {
         setLoading(false);
         Animated.timing(headerAnim, { toValue: 1, duration: 600, useNativeDriver: true }).start();
@@ -360,6 +363,7 @@ export default function ScribeScreen() {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
     } catch (e) {
       console.error("[Scribe] Failed to save entries:", e);
+      reportError(e, "[Scribe] Failed to save entries:");
     }
   }, []);
 

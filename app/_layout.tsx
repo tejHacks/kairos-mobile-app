@@ -10,9 +10,13 @@ import { useEffect, useState } from "react";
 import { StatusBar } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { rescheduleSavedPrayerNotifications } from "../hooks/usePrayerTimes";
+import { initCrashlytics } from "../lib/crashlytics";
 
 // Keep the splash up until fonts and the saved theme are ready
 SplashScreen.preventAutoHideAsync();
+
+// Crash reporting (a no-op in Expo Go and tests, off in development builds)
+initCrashlytics();
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({

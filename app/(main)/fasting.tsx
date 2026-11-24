@@ -42,6 +42,7 @@ import Navbar from "@/components/Navbar";
 import TopBar from "../../components/TopBar";
 
 import { c } from "@/constants/theme";
+import { reportError } from "@/lib/crashlytics";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -284,6 +285,7 @@ export default function FastingScreen() {
         setReminderPeriod(period);
       } catch (e) {
         console.error("[Kairos] Failed to load fast state:", e);
+      reportError(e, "[Kairos] Failed to load fast state:");
       } finally {
         setLoading(false);
       }
@@ -319,6 +321,7 @@ export default function FastingScreen() {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (e) {
       console.error("[Kairos] Failed to save fast state:", e);
+      reportError(e, "[Kairos] Failed to save fast state:");
     }
   }, []);
 
